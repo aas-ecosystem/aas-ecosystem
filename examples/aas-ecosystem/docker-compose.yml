@@ -1,0 +1,945 @@
+# AAS-Ecosystem – Starten im Verzeichnis dieser Datei mit: docker compose up -d
+# Die Konfiguration kommt aus .env (amd64). Auf ARM-Rechnern (z. B. Apple Silicon)
+# vorher .env.example-arm nach .env kopieren.
+# Templates aus stack-assets/aas-import/raw-xml werden nur importiert, wenn sie noch fehlen.
+# Bestehende Templates mit den XML-Dateien überschreiben:
+#   docker compose run --rm -e AAS_SEED_FORCE=true aas-seed-import
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE_REPO}:${POSTGRES_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    ports:
+      - "5444:5432"
+    container_name: ${PROJECT_NAME}-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BASYX_POSTGRES_DB: ${BASYX_POSTGRES_DB}
+      KEYCLOAK_POSTGRES_DB: ${KEYCLOAK_POSTGRES_DB}
+      DPP_GATEWAY_POSTGRES_DB: ${DPP_GATEWAY_POSTGRES_DB:-}
+      MARKT_POSTGRES_DB: ${MARKT_POSTGRES_DB}
+      TWINENGINE_POSTGRES_DB: ${TWINENGINE_POSTGRES_DB:-twinengine}
+    volumes:
+      - aas-ecosystem-postgres:/var/lib/postgresql/data
+      - ./postgres-init/10-create-databases.sh:/docker-entrypoint-initdb.d/10-create-databases.sh:ro
+      - ./postgres-init/20-twinengine-init.sh:/docker-entrypoint-initdb.d/20-twinengine-init.sh:ro
+      - ./postgres-init/twinengine-schema.sql:/docker-entrypoint-initdb.d/twinengine-schema.sql:ro
+      - ./postgres-init/twinengine-seed.sql:/docker-entrypoint-initdb.d/twinengine-seed.sql:ro
+      - ./postgres-init/schema:/docker-entrypoint-initdb.d/schema:ro
+      - ./postgres-init/seed:/docker-entrypoint-initdb.d/seed:ro
+    networks:
+      - aas-ecosystem-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+  postgres-init:
+    image: ${POSTGRES_IMAGE_REPO}:${POSTGRES_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-postgres-init
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      PGPORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      BASYX_POSTGRES_DB: ${BASYX_POSTGRES_DB}
+      KEYCLOAK_POSTGRES_DB: ${KEYCLOAK_POSTGRES_DB}
+      DPP_GATEWAY_POSTGRES_DB: ${DPP_GATEWAY_POSTGRES_DB:-}
+      MARKT_POSTGRES_DB: ${MARKT_POSTGRES_DB:-}
+      TWINENGINE_POSTGRES_DB: ${TWINENGINE_POSTGRES_DB:-twinengine}
+    command: ["/bin/bash", "/scripts/10-create-databases.sh"]
+    volumes:
+      - ./postgres-init/10-create-databases.sh:/scripts/10-create-databases.sh:ro
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  infrastructure-bootstrap:
+    image: ${POSTGRES_IMAGE_REPO}:${POSTGRES_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-infrastructure-bootstrap
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER}
+      PGDATABASE: ${POSTGRES_DB}
+      BOOTSTRAP_MAX_ATTEMPTS: ${BOOTSTRAP_MAX_ATTEMPTS:-120}
+      BOOTSTRAP_ATTEMPT_DELAY_SECONDS: ${BOOTSTRAP_ATTEMPT_DELAY_SECONDS:-5}
+      LOCAL_HOSTNAME: ${LOCAL_HOSTNAME:-aas-ecosystem.local}
+    command: ["/bin/sh", "/scripts/10-bootstrap-infrastructure.sh"]
+    volumes:
+      - ./infrastructure-bootstrap/10-bootstrap-infrastructure.sh:/scripts/10-bootstrap-infrastructure.sh:ro
+      - ./infrastructure-bootstrap/bootstrap.sql:/scripts/bootstrap.sql:ro
+      - ./infrastructure-bootstrap/infrastructures.seed.sql:/scripts/infrastructures.seed.sql:ro
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      aas-designer-community:
+        condition: service_started
+    restart: "no"
+
+  keycloak-realm-init:
+    image: busybox:latest
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    container_name: ${PROJECT_NAME}-keycloak-realm-init
+    environment:
+      LOCAL_HOSTNAME: ${LOCAL_HOSTNAME:-aas-ecosystem.local}
+      LOCAL_SCHEME: ${LOCAL_SCHEME:-http}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        sed -e "s/__LOCAL_HOSTNAME__/$$LOCAL_HOSTNAME/g" -e "s/__LOCAL_SCHEME__/$$LOCAL_SCHEME/g" /template/aas-local-realm.json > /output/aas-local-realm.json
+    volumes:
+      - ${KEYCLOAK_REALM_FILE}:/template/aas-local-realm.json:ro
+      - keycloak-realm-import:/output
+    restart: "no"
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE_REPO}:${KEYCLOAK_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-keycloak
+    command: start-dev --http-port=8080 --hostname-strict=false --proxy-headers=xforwarded --import-realm --spi-theme-cache-themes=false --spi-theme-cache-templates=false
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_DATABASE: ${KEYCLOAK_POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: "false"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - "8088:8080"
+    volumes:
+      - keycloak-realm-import:/opt/keycloak/data/import:ro
+      - ${KEYCLOAK_THEMES_PATH}:/opt/keycloak/themes:ro
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-init:
+        condition: service_completed_successfully
+      keycloak-realm-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  gateway:
+    image: ${GATEWAY_IMAGE_REPO}:${GATEWAY_IMAGE_TAG}
+    platform: ${DESIGNER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-gateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      Session__Postgres__ConnectionString: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Session__Postgres__SchemaName: public
+      Session__Postgres__TableName: gateway_session_cache
+      Session__Postgres__CreateIfNotExists: "true"
+      Session__Postgres__ExpiredItemsDeletionInterval: 00:30:00
+      Session__Postgres__DefaultSlidingExpiration: 08:00:00
+      ReverseProxy__Clusters__keycloak-cluster__Destinations__destination1__Address: http://keycloak:8080
+      ReverseProxy__Clusters__aas-designer-cluster__Destinations__destination1__Address: http://aas-designer-community:8080
+      ReverseProxy__Clusters__frontend-cluster__Destinations__destination1__Address: http://frontend:80
+      AppSettings__KeycloakEnabled: "true"
+      AppSettings__KeycloakSsoSourceName: ${KEYCLOAK_SSO_SOURCE_NAME:-keycloak}
+      AppSettings__KeycloakIssuer: ${KEYCLOAK_ISSUER}
+      AppSettings__KeycloakWellKnownUrl: ${KEYCLOAK_WELLKNOWN_URL}
+      AppSettings__KeycloakPublicIssuer: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/realms/aas-local
+      AppSettings__KeycloakPublicWellKnownUrl: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/realms/aas-local/.well-known/openid-configuration
+      AppSettings__KeycloakClientId: ${KEYCLOAK_CLIENT_ID}
+      AppSettings__KeycloakAudience: ${KEYCLOAK_AUDIENCE}
+      AppSettings__KeycloakScopes: ${KEYCLOAK_SCOPES}
+      GatewayBackend__FrontendLoginPath: /login
+    ports:
+      - "80:8080"
+    volumes:
+      - gateway-data-protection:/var/lib/vws-gateway/keys
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/health >/dev/null || exit 1; else kill -0 1; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  aas-designer-community:
+    image: ${DESIGNER_BACKEND_IMAGE_REPO}:${DESIGNER_BACKEND_IMAGE_TAG}
+    platform: ${DESIGNER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-aas-designer-community
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__PgDatabase: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      AppSettings__KeycloakEnabled: "true"
+      AppSettings__KeycloakSsoSourceName: keycloak
+      AppSettings__KeycloakIssuer: ${KEYCLOAK_ISSUER}
+      AppSettings__KeycloakWellKnownUrl: ${KEYCLOAK_WELLKNOWN_URL}
+      AppSettings__KeycloakPublicIssuer: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/realms/aas-local
+      AppSettings__KeycloakPublicWellKnownUrl: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/realms/aas-local/.well-known/openid-configuration
+      AppSettings__KeycloakClientId: ${KEYCLOAK_CLIENT_ID}
+      AppSettings__KeycloakAudience: ${KEYCLOAK_AUDIENCE}
+      AppSettings__KeycloakScopes: ${KEYCLOAK_SCOPES}
+      AppSettings__KeycloakResourceAccessName: ${KEYCLOAK_RESOURCE_ACCESS_NAME}
+      AppSettings__KeycloakAdminRealm: ${KEYCLOAK_ADMIN_REALM}
+      AppSettings__KeycloakAdminClientId: ${KEYCLOAK_ADMIN_CLIENT_ID}
+      AppSettings__KeycloakAdminClientSecret: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+      AppSettings__KeycloakAdminUsername: ${KEYCLOAK_ADMIN_USERNAME}
+      AppSettings__KeycloakAdminPassword: ${KEYCLOAK_ADMIN_PASSWORD}
+      AppSettings__InitialOrganisationAdminEmail: ${INITIAL_ORGANISATION_ADMIN_EMAIL}
+      AppSettings__InitialOrganisationAdminName: ${INITIAL_ORGANISATION_ADMIN_NAME}
+      AppSettings__InitialOrganisationAdminVorname: ${INITIAL_ORGANISATION_ADMIN_VORNAME}
+      AppSettings__InitialOrganisationAdminPassword: ${INITIAL_ORGANISATION_ADMIN_PASSWORD}
+      AppSettings__Issuer: ${APP_JWT_ISSUER:-vws-portal}
+      AppSettings__Salt: ${APP_JWT_SALT:-ja1nnNyDKoiTYu3LaBQ/9A==}
+      AppSettings__Secret: ${APP_JWT_SECRET:-wik3RnSNPAPt85PFs9FZSQksdoughzfoafdt879uiaodfnbiezv79si90dpoawlcv}
+      AppSettings__BaseUrl: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}
+      AppSettings__PublicBaseApiUrl: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/designer-api/api
+      AppSettings__InitialAasDiscoveryUrl: ${BASYX_AAS_DISCOVERY_URL}
+      AppSettings__InitialAasDiscoveryVersion: ${AAS_DISCOVERY_IMAGE_TAG}
+      AppSettings__InitialAasDiscoveryContainer: ${BASYX_AAS_DISCOVERY_CONTAINER}
+      AppSettings__InitialAasDiscoveryContainerPort: ${BASYX_AAS_DISCOVERY_CONTAINER_PORT}
+      AppSettings__InitialAasDiscoveryHcUrl: ${BASYX_AAS_DISCOVERY_HC_URL}
+      AppSettings__InitialAasRegistryUrl: ${BASYX_AAS_REGISTRY_URL}
+      AppSettings__InitialAasRegistryVersion: ${AAS_REGISTRY_IMAGE_TAG}
+      AppSettings__InitialAasRegistryContainer: ${BASYX_AAS_REGISTRY_CONTAINER}
+      AppSettings__InitialAasRegistryContainerPort: ${BASYX_AAS_REGISTRY_CONTAINER_PORT}
+      AppSettings__InitialAasRegistryHcUrl: ${BASYX_AAS_REGISTRY_HC_URL}
+      AppSettings__InitialSubmodelRegistryUrl: ${BASYX_SUBMODEL_REGISTRY_URL}
+      AppSettings__InitialSubmodelRegistryVersion: ${SUBMODEL_REGISTRY_IMAGE_TAG}
+      AppSettings__InitialSubmodelRegistryContainer: ${BASYX_SUBMODEL_REGISTRY_CONTAINER}
+      AppSettings__InitialSubmodelRegistryContainerPort: ${BASYX_SUBMODEL_REGISTRY_CONTAINER_PORT}
+      AppSettings__InitialSubmodelRegistryHcUrl: ${BASYX_SUBMODEL_REGISTRY_HC_URL}
+      AppSettings__InitialAasRepositoryUrl: ${BASYX_AAS_REPOSITORY_URL}
+      AppSettings__InitialAasRepositoryVersion: ${AAS_REPOSITORY_IMAGE_TAG}
+      AppSettings__InitialAasRepositoryContainer: ${BASYX_AAS_REPOSITORY_CONTAINER}
+      AppSettings__InitialAasRepositoryContainerPort: ${BASYX_AAS_REPOSITORY_CONTAINER_PORT}
+      AppSettings__InitialAasRepositoryHcUrl: ${BASYX_AAS_REPOSITORY_HC_URL}
+      AppSettings__InitialSubmodelRepositoryUrl: ${BASYX_SUBMODEL_REPOSITORY_URL}
+      AppSettings__InitialSubmodelRepositoryVersion: ${SUBMODEL_REPOSITORY_IMAGE_TAG}
+      AppSettings__InitialSubmodelRepositoryContainer: ${BASYX_SUBMODEL_REPOSITORY_CONTAINER}
+      AppSettings__InitialSubmodelRepositoryContainerPort: ${BASYX_SUBMODEL_REPOSITORY_CONTAINER_PORT}
+      AppSettings__InitialSubmodelRepositoryHcUrl: ${BASYX_SUBMODEL_REPOSITORY_HC_URL}
+      AppSettings__InitialConceptDescriptionRepositoryUrl: ${BASYX_CONCEPT_DESCRIPTION_REPOSITORY_URL}
+      AppSettings__InitialConceptDescriptionRepositoryVersion: ${CONCEPT_DESCRIPTION_REPOSITORY_IMAGE_TAG}
+      AppSettings__InitialConceptDescriptionRepositoryContainer: ${BASYX_CONCEPT_DESCRIPTION_REPOSITORY_CONTAINER}
+      AppSettings__InitialConceptDescriptionRepositoryContainerPort: ${BASYX_CONCEPT_DESCRIPTION_REPOSITORY_CONTAINER_PORT}
+      AppSettings__InitialConceptDescriptionRepositoryHcUrl: ${BASYX_CONCEPT_DESCRIPTION_REPOSITORY_HC_URL}
+      AppSettings__SingleTenantMode: "true"
+      AppSettings__HandleInitialInfrastructureAsInternal: ${BASYX_HANDLE_AS_INTERNAL}
+      AppSettings__PluginsEnabled: ${PLUGINS_ENABLED:-true}
+      AppSettings__PluginDirectory: /app/plugins
+      AppSettings__DppGatewayOAuthClientId: dpp-gateway
+      AppSettings__DppGatewayOAuthClientSecret: ${DPP_GATEWAY_CLIENT_SECRET}
+      AppSettings__DppGatewayOAuthAudience: dpp-api
+      AppSettings__DppGatewayManagementUrl: http://dpp-gateway:8080
+      AppSettings__DppGatewayPublisherAudience: dpp-gateway-management
+      AppSettings__DppSecurityBaseDirectory: /app/dpp-security
+      AppSettings__DppPolicyAdminOAuthClientId: dpp-policy-admin
+      AppSettings__DppPolicyAdminOAuthClientSecret: ${DPP_POLICY_ADMIN_CLIENT_SECRET}
+      AppSettings__DppPolicyAdminOAuthAudience: dpp-api
+      AppSettings__DppPolicyManagementApiEnabled: "true"
+      AppSettings__InitialDppApiUrl: http://dppapi-go:8080
+      AppSettings__InitialDppApiVersion: v1
+      AppSettings__InitialDppApiHcUrl: http://dppapi-go:8080/health
+      ConnectionStrings__DefaultConnection: Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      AppSettings__FileStoragePath: /app/storage
+      Gateway__Url: http://gateway:8080
+      AppSettings__KeycloakEmailClaimName: ${KEYCLOAK_EMAIL_CLAIM_NAME:-email}
+      AppSettings__KeycloakFirstNameClaimName: ${KEYCLOAK_FIRST_NAME_CLAIM_NAME:-given_name}
+      AppSettings__KeycloakLastNameClaimName: ${KEYCLOAK_LAST_NAME_CLAIM_NAME:-family_name}
+      TWINENGINE_CONFIG_PATH: /app/twinengine-config/config.json
+      TWINENGINE_DATAENGINE_EXPORT_PATH: /app/generated-config/twinengine-dataengine.env
+      TWINENGINE_DPP_PLUGIN_EXPORT_PATH: /app/generated-config/twinengine-dpp-plugin.env
+      TWINENGINE_DOCKER_HOST: unix:///var/run/docker.sock
+      TWINENGINE_DB_CONNECTION_STRING: Host=postgres;Port=5432;Database=${TWINENGINE_POSTGRES_DB:-twinengine};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      TWINENGINE_SUBMODEL_TEMPLATE_REPOSITORY_URL: http://submodelrepository-go:8080
+      EmailConfiguration__SmtpServer: ${SMTP_SERVER}
+      EmailConfiguration__SmtpPort: ${SMTP_PORT}
+      EmailConfiguration__SmtpUseSSL: ${SMTP_USE_SSL}
+      EmailConfiguration__SmtpUseTLS: ${SMTP_USE_TLS}
+      EmailConfiguration__SmtpNeedsAuthentication: ${SMTP_NEEDS_AUTHENTICATION}
+      EmailConfiguration__SenderAddress: ${SENDER_ADDRESS}
+      EmailConfiguration__SenderUsername: ${SENDER_USER}
+      EmailConfiguration__SenderPassword: ${SENDER_PASSWORD}
+      EmailConfiguration__NewOrgaNotificationAddress: ${NEW_ORGA_NOTIFICATION_ADDRESS}
+      EmailConfiguration__SubjectPrefix: ${SUBJECT_PREFIX}
+    volumes:
+      - ./plugins:/app/plugins
+      - ./generated-config:/app/generated-config
+      - twinengine-config-data:/app/twinengine-config
+      - /var/run/docker.sock:/var/run/docker.sock
+      - designer-storage:/app/storage
+      - ./dpp-security:/app/dpp-security
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/api/hc >/dev/null || exit 1; else kill -0 1; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE_REPO}:${FRONTEND_IMAGE_TAG}
+    platform: ${DESIGNER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-frontend
+    environment:
+      API_URL: http://aas-designer-community:8080
+      GATEWAY_URL: http://gateway:8080
+      FRONTEND_API_BASE_URL: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/designer-api
+      FRONTEND_FEEDMAPPING_BASE_URL: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}
+      FRONTEND_THEME: ${FRONTEND_THEME:-}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        ROOT_DIR="/usr/share/caddy"
+        if [ -d "/usr/share/caddy/browser" ]; then
+          ROOT_DIR="/usr/share/caddy/browser"
+        fi
+        FRONTEND_API_BASE_URL="$${FRONTEND_API_BASE_URL%/}"
+        FRONTEND_FEEDMAPPING_BASE_URL="$${FRONTEND_FEEDMAPPING_BASE_URL%/}"
+        GATEWAY_BASE_URL="$${FRONTEND_API_BASE_URL%/designer-api}"
+        RUNTIME_CONFIG_FILE="$$ROOT_DIR/runtime-config.js"
+        cat >"$$RUNTIME_CONFIG_FILE" <<EOF
+        window.__AAS_FRONTEND_API_BASE_URL = "${FRONTEND_API_BASE_URL}";
+        window.__AAS_FRONTEND_FEEDMAPPING_BASE_URL = "${FRONTEND_FEEDMAPPING_BASE_URL}";
+        EOF
+        ESCAPED_API_BASE_URL="$$(printf '%s' "${FRONTEND_API_BASE_URL}" | sed 's/[&|]/\\&/g')"
+        ESCAPED_API_BASE_URL_WITH_SLASH="$$(printf '%s/' "${FRONTEND_API_BASE_URL}" | sed 's/[&|]/\\&/g')"
+        DESIGNER_BASE_URL="${FRONTEND_API_BASE_URL}"
+        ESCAPED_DESIGNER_BASE_URL="$$(printf '%s' "$$DESIGNER_BASE_URL" | sed 's/[&|]/\\&/g')"
+        ESCAPED_GATEWAY_BASE_URL="$$(printf '%s' "$$GATEWAY_BASE_URL" | sed 's/[&|]/\\&/g')"
+        find "$$ROOT_DIR" -type f -name '*.js' -exec sed -i "s|http://localhost:5196/designer-api|$$ESCAPED_API_BASE_URL|g" {} +
+        find "$$ROOT_DIR" -type f -name '*.js' -exec sed -i "s|http://localhost:5196/designer|$$ESCAPED_DESIGNER_BASE_URL|g" {} +
+        find "$$ROOT_DIR" -type f -name '*.js' -exec sed -i "s|http://localhost:5196|$$ESCAPED_GATEWAY_BASE_URL|g" {} +
+        find "$$ROOT_DIR" -type f -name '*.js' -exec sed -i "s|strictDiscoveryDocumentValidation:!1,skipIssuerCheck:!0|strictDiscoveryDocumentValidation:!1,skipIssuerCheck:!0,requireHttps:!1|g" {} +
+        find "$$ROOT_DIR" -type f -name '*.js' -exec sed -i "s|strictDiscoveryDocumentValidation:false,skipIssuerCheck:true|strictDiscoveryDocumentValidation:false,skipIssuerCheck:true,requireHttps:false|g" {} +
+        find "$$ROOT_DIR" -type f -name '*.js' -exec sed -i 's|requireHttps:\"remoteOnly\"|requireHttps:!1|g' {} +
+        CONFIG_FILE="$$ROOT_DIR/config/app-config.json"
+        if [ -f "$$CONFIG_FILE" ]; then
+          sed -i "s|http://localhost:5196/designer/|$$ESCAPED_API_BASE_URL_WITH_SLASH|g" "$$CONFIG_FILE"
+          sed -i "s|http://localhost:5196|$$ESCAPED_GATEWAY_BASE_URL|g" "$$CONFIG_FILE"
+          sed -i "s|\"apiPath\": \"$$ESCAPED_API_BASE_URL\"|\"apiPath\": \"$$ESCAPED_API_BASE_URL/api\"|g" "$$CONFIG_FILE"
+          sed -i 's|"apiPath": "/designer-api"|"apiPath": "/designer-api/api"|g' "$$CONFIG_FILE"
+          sed -i 's|"aasApiPath": "/designer/|"aasApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasProxyApiPath": "/designer/|"aasProxyApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasSharedLinksApiPath": "/designer/|"aasSharedLinksApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasDashboardApiPath": "/designer/|"aasDashboardApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasSystemManagementApiPath": "/designer/|"aasSystemManagementApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasHelpApiPath": "/designer/|"aasHelpApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasViewerApiPath": "/designer/|"aasViewerApiPath": "/designer-api/|g' "$$CONFIG_FILE"
+          sed -i 's|"aasViewerProxyPath": "/designer/|"aasViewerProxyPath": "/designer-api/|g' "$$CONFIG_FILE"
+        fi
+        FALLBACK_CONFIG_FILE="/usr/share/caddy/config/app-config.json"
+        if [ -f "$$FALLBACK_CONFIG_FILE" ]; then
+          sed -i "s|http://localhost:5196/designer/|$$ESCAPED_API_BASE_URL_WITH_SLASH|g" "$$FALLBACK_CONFIG_FILE"
+          sed -i "s|http://localhost:5196|$$ESCAPED_GATEWAY_BASE_URL|g" "$$FALLBACK_CONFIG_FILE"
+          sed -i "s|\"apiPath\": \"$$ESCAPED_API_BASE_URL\"|\"apiPath\": \"$$ESCAPED_API_BASE_URL/api\"|g" "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"apiPath": "/designer-api"|"apiPath": "/designer-api/api"|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasApiPath": "/designer/|"aasApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasProxyApiPath": "/designer/|"aasProxyApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasSharedLinksApiPath": "/designer/|"aasSharedLinksApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasDashboardApiPath": "/designer/|"aasDashboardApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasSystemManagementApiPath": "/designer/|"aasSystemManagementApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasHelpApiPath": "/designer/|"aasHelpApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasViewerApiPath": "/designer/|"aasViewerApiPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+          sed -i 's|"aasViewerProxyPath": "/designer/|"aasViewerProxyPath": "/designer-api/|g' "$$FALLBACK_CONFIG_FILE"
+        fi
+        INDEX_FILE="$$ROOT_DIR/index.html"
+        if [ -f "$$INDEX_FILE" ] && ! grep -q "runtime-config.js" "$$INDEX_FILE"; then
+          sed -i 's#<head>#<head><script src="runtime-config.js"></script>#' "$$INDEX_FILE"
+        fi
+        if [ -n "" ] && [ -f "$$INDEX_FILE" ]; then
+          sed -i "s#<base href=\"/\" />#<base href=\"\" />#" "$$INDEX_FILE"
+        fi
+        cat >/tmp/Caddyfile <<EOF
+        {
+          auto_https off
+        }
+        :80 {
+          root * $$ROOT_DIR
+          encode gzip
+          try_files {path} /index.html
+          file_server
+        }
+        EOF
+        exec caddy run --config /tmp/Caddyfile --adapter caddyfile
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:80 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  basyx-config-init:
+    image: ${BASYX_CONFIG_SERVICE_IMAGE_REPO}:${AAS_REGISTRY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-basyx-config-init
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${BASYX_POSTGRES_DB}
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+    restart: "no"
+
+  aasregistry-go:
+    image: ${AAS_REGISTRY_IMAGE_REPO}:${AAS_REGISTRY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-aasregistry-go
+    environment:
+      CORS_ALLOWEDORIGINS: ${AASREG_CORS_ALLOWEDORIGINS}
+      CORS_ALLOWEDHEADERS: ${AASREG_CORS_ALLOWEDHEADERS}
+      CORS_ALLOWEDCREDENTIALS: ${AASREG_CORS_ALLOWEDCREDENTIALS}
+      CORS_ALLOWEDMETHODS: ${AASREG_CORS_ALLOWEDMETHODS}
+      VIRTUAL_PORT: ${AASREG_VIRTUAL_PORT}
+      SERVER_PORT: ${AASREG_SERVER_PORT}
+      POSTGRES_HOST: ${AASREG_POSTGRES_HOST}
+      POSTGRES_PORT: ${AASREG_POSTGRES_PORT}
+      POSTGRES_USER: ${AASREG_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AASREG_POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${AASREG_POSTGRES_DBNAME}
+      POSTGRES_MAXOPENCONNECTIONS: ${AASREG_POSTGRES_MAXOPENCONNECTIONS}
+      POSTGRES_MAXIDLECONNECTIONS: ${AASREG_POSTGRES_MAXIDLECONNECTIONS}
+      POSTGRES_CONNMAXLIFETIMEMINUTES: ${AASREG_POSTGRES_CONNMAXLIFETIMEMINUTES}
+      ABAC_ENABLED: ${AASREG_ABAC_ENABLED}
+      ABAC_MODELPATH: ${AASREG_ABAC_MODELPATH}
+      OIDC_TRUSTLISTPATH: ${AASREG_OIDC_TRUSTLISTPATH}
+    volumes:
+      - ./stack-assets/security_env:/security_env
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      basyx-config-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  submodelregistry-go:
+    image: ${SUBMODEL_REGISTRY_IMAGE_REPO}:${SUBMODEL_REGISTRY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-submodelregistry-go
+    environment:
+      CORS_ALLOWEDORIGINS: ${SMREG_CORS_ALLOWEDORIGINS}
+      CORS_ALLOWEDHEADERS: ${SMREG_CORS_ALLOWEDHEADERS}
+      CORS_ALLOWEDCREDENTIALS: ${SMREG_CORS_ALLOWEDCREDENTIALS}
+      CORS_ALLOWEDMETHODS: ${SMREG_CORS_ALLOWEDMETHODS}
+      VIRTUAL_PORT: ${SMREG_VIRTUAL_PORT}
+      SERVER_PORT: ${SMREG_SERVER_PORT}
+      POSTGRES_HOST: ${SMREG_POSTGRES_HOST}
+      POSTGRES_PORT: ${SMREG_POSTGRES_PORT}
+      POSTGRES_USER: ${SMREG_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SMREG_POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${SMREG_POSTGRES_DBNAME}
+      POSTGRES_MAXOPENCONNECTIONS: ${SMREG_POSTGRES_MAXOPENCONNECTIONS}
+      POSTGRES_MAXIDLECONNECTIONS: ${SMREG_POSTGRES_MAXIDLECONNECTIONS}
+      POSTGRES_CONNMAXLIFETIMEMINUTES: ${SMREG_POSTGRES_CONNMAXLIFETIMEMINUTES}
+      ABAC_ENABLED: ${SMREG_ABAC_ENABLED}
+      ABAC_MODELPATH: ${SMREG_ABAC_MODELPATH}
+      OIDC_TRUSTLISTPATH: ${SMREG_OIDC_TRUSTLISTPATH}
+    volumes:
+      - ./stack-assets/security_env:/security_env
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      basyx-config-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  aasdiscovery-go:
+    image: ${AAS_DISCOVERY_IMAGE_REPO}:${AAS_DISCOVERY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-aasdiscovery-go
+    environment:
+      CORS_ALLOWEDORIGINS: ${AASDISC_CORS_ALLOWEDORIGINS}
+      CORS_ALLOWEDHEADERS: ${AASDISC_CORS_ALLOWEDHEADERS}
+      CORS_ALLOWEDCREDENTIALS: ${AASDISC_CORS_ALLOWEDCREDENTIALS}
+      CORS_ALLOWEDMETHODS: ${AASDISC_CORS_ALLOWEDMETHODS}
+      VIRTUAL_PORT: ${AASDISC_VIRTUAL_PORT}
+      SERVER_PORT: ${AASDISC_SERVER_PORT}
+      POSTGRES_HOST: ${AASDISC_POSTGRES_HOST}
+      POSTGRES_PORT: ${AASDISC_POSTGRES_PORT}
+      POSTGRES_USER: ${AASDISC_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AASDISC_POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${AASDISC_POSTGRES_DBNAME}
+      POSTGRES_MAXOPENCONNECTIONS: ${AASDISC_POSTGRES_MAXOPENCONNECTIONS}
+      POSTGRES_MAXIDLECONNECTIONS: ${AASDISC_POSTGRES_MAXIDLECONNECTIONS}
+      POSTGRES_CONNMAXLIFETIMEMINUTES: ${AASDISC_POSTGRES_CONNMAXLIFETIMEMINUTES}
+      ABAC_ENABLED: ${AASDISC_ABAC_ENABLED}
+      ABAC_MODELPATH: ${AASDISC_ABAC_MODELPATH}
+      OIDC_TRUSTLISTPATH: ${AASDISC_OIDC_TRUSTLISTPATH}
+    volumes:
+      - ./stack-assets/security_env:/security_env
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      basyx-config-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  aasrepository-go:
+    image: ${AAS_REPOSITORY_IMAGE_REPO}:${AAS_REPOSITORY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-aasrepository-go
+    environment:
+      CORS_ALLOWEDORIGINS: ${AASREPO_CORS_ALLOWEDORIGINS}
+      CORS_ALLOWEDHEADERS: ${AASREPO_CORS_ALLOWEDHEADERS}
+      CORS_ALLOWEDCREDENTIALS: ${AASREPO_CORS_ALLOWEDCREDENTIALS}
+      CORS_ALLOWEDMETHODS: ${AASREPO_CORS_ALLOWEDMETHODS}
+      SERVER_PORT: ${AASREPO_SERVER_PORT}
+      POSTGRES_HOST: ${AASREPO_POSTGRES_HOST}
+      POSTGRES_PORT: ${AASREPO_POSTGRES_PORT}
+      POSTGRES_USER: ${AASREPO_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AASREPO_POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${AASREPO_POSTGRES_DBNAME}
+      POSTGRES_MAXOPENCONNECTIONS: ${AASREPO_POSTGRES_MAXOPENCONNECTIONS}
+      POSTGRES_MAXIDLECONNECTIONS: ${AASREPO_POSTGRES_MAXIDLECONNECTIONS}
+      POSTGRES_CONNMAXLIFETIMEMINUTES: ${AASREPO_POSTGRES_CONNMAXLIFETIMEMINUTES}
+      ABAC_ENABLED: ${AASREPO_ABAC_ENABLED}
+      ABAC_MODELPATH: ${AASREPO_ABAC_MODELPATH}
+      OIDC_TRUSTLISTPATH: ${AASREPO_OIDC_TRUSTLISTPATH}
+    volumes:
+      - ./stack-assets/security_env:/security_env
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      basyx-config-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  submodelrepository-go:
+    image: ${SUBMODEL_REPOSITORY_IMAGE_REPO}:${SUBMODEL_REPOSITORY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-submodelrepository-go
+    environment:
+      CORS_ALLOWEDORIGINS: ${SMREPO_CORS_ALLOWEDORIGINS}
+      CORS_ALLOWEDHEADERS: ${SMREPO_CORS_ALLOWEDHEADERS}
+      CORS_ALLOWEDCREDENTIALS: ${SMREPO_CORS_ALLOWEDCREDENTIALS}
+      CORS_ALLOWEDMETHODS: ${SMREPO_CORS_ALLOWEDMETHODS}
+      SERVER_PORT: ${SMREPO_SERVER_PORT}
+      POSTGRES_HOST: ${SMREPO_POSTGRES_HOST}
+      POSTGRES_PORT: ${SMREPO_POSTGRES_PORT}
+      POSTGRES_USER: ${SMREPO_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SMREPO_POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${SMREPO_POSTGRES_DBNAME}
+      POSTGRES_MAXOPENCONNECTIONS: ${SMREPO_POSTGRES_MAXOPENCONNECTIONS}
+      POSTGRES_MAXIDLECONNECTIONS: ${SMREPO_POSTGRES_MAXIDLECONNECTIONS}
+      POSTGRES_CONNMAXLIFETIMEMINUTES: ${SMREPO_POSTGRES_CONNMAXLIFETIMEMINUTES}
+      ABAC_ENABLED: ${SMREPO_ABAC_ENABLED}
+      ABAC_MODELPATH: ${SMREPO_ABAC_MODELPATH}
+      OIDC_TRUSTLISTPATH: ${SMREPO_OIDC_TRUSTLISTPATH}
+      JWS_PRIVATEKEYPATH: ${SMREPO_JWS_PRIVATEKEYPATH}
+    volumes:
+      - ./stack-assets/security_env:/security_env
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      basyx-config-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  conceptdescriptionrepository-go:
+    image: ${CONCEPT_DESCRIPTION_REPOSITORY_IMAGE_REPO}:${CONCEPT_DESCRIPTION_REPOSITORY_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-conceptdescriptionrepository-go
+    environment:
+      CORS_ALLOWEDORIGINS: ${CDREPO_CORS_ALLOWEDORIGINS}
+      CORS_ALLOWEDHEADERS: ${CDREPO_CORS_ALLOWEDHEADERS}
+      CORS_ALLOWEDCREDENTIALS: ${CDREPO_CORS_ALLOWEDCREDENTIALS}
+      CORS_ALLOWEDMETHODS: ${CDREPO_CORS_ALLOWEDMETHODS}
+      SERVER_PORT: ${CDREPO_SERVER_PORT}
+      POSTGRES_HOST: ${CDREPO_POSTGRES_HOST}
+      POSTGRES_PORT: ${CDREPO_POSTGRES_PORT}
+      POSTGRES_USER: ${CDREPO_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CDREPO_POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${CDREPO_POSTGRES_DBNAME}
+      POSTGRES_MAXOPENCONNECTIONS: ${CDREPO_POSTGRES_MAXOPENCONNECTIONS}
+      POSTGRES_MAXIDLECONNECTIONS: ${CDREPO_POSTGRES_MAXIDLECONNECTIONS}
+      POSTGRES_CONNMAXLIFETIMEMINUTES: ${CDREPO_POSTGRES_CONNMAXLIFETIMEMINUTES}
+      ABAC_ENABLED: ${CDREPO_ABAC_ENABLED}
+      ABAC_MODELPATH: ${CDREPO_ABAC_MODELPATH}
+      OIDC_TRUSTLISTPATH: ${CDREPO_OIDC_TRUSTLISTPATH}
+    volumes:
+      - ./stack-assets/security_env:/security_env
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      basyx-config-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  aas-seed-import:
+    image: python:3.12-alpine
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-aas-seed-import
+    environment:
+      RAW_XML_DIR: /raw-xml
+      OUTPUT_DIR: /generated
+      AAS_IMPORT_PATH: /generated
+      AAS_REPO_URL: http://aasrepository-go:8080
+      SUBMODEL_REPO_URL: http://submodelrepository-go:8080
+      CONCEPT_DESCRIPTION_REPO_URL: http://conceptdescriptionrepository-go:8080
+      AAS_REPO_HEALTH_URL: http://aasrepository-go:8080/health
+      SUBMODEL_REPO_HEALTH_URL: http://submodelrepository-go:8080/health
+      CONCEPT_DESCRIPTION_REPO_HEALTH_URL: http://conceptdescriptionrepository-go:8080/health
+      IMPORT_MAX_WAIT_SECONDS: ${AAS_IMPORT_MAX_WAIT_SECONDS:-300}
+      IMPORT_POLL_SECONDS: ${AAS_IMPORT_POLL_SECONDS:-2}
+      AAS_SEED_FORCE: ${AAS_SEED_FORCE:-false}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        pip install --quiet basyx-python-sdk
+        python /scripts/30-convert-xml-aas-seeds.py
+        python /scripts/20-import-aas-assets.py
+    volumes:
+      - ./infrastructure-bootstrap/20-import-aas-assets.py:/scripts/20-import-aas-assets.py:ro
+      - ./infrastructure-bootstrap/30-convert-xml-aas-seeds.py:/scripts/30-convert-xml-aas-seeds.py:ro
+      - ./stack-assets/aas-import/raw-xml:/raw-xml:ro
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      aasrepository-go:
+        condition: service_started
+      submodelrepository-go:
+        condition: service_started
+      conceptdescriptionrepository-go:
+        condition: service_started
+    restart: "no"
+
+  dpp-plugin:
+    image: ghcr.io/aas-twinengine/plugindpp:v1.2.0
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-dpp-plugin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-init:
+        condition: service_completed_successfully
+    environment:
+      - Semantics__IndexContextPrefix=_aastwinengineindex_
+      - Capabilities__HasShellDescriptor=true
+      - Capabilities__HasAssetInformation=true
+      - Capabilities__HasAssetIdSearch=true
+      - Capabilities__HasAssetKindTypeFilter=true
+      - Capabilities__HasSubmodelBatch=true
+      - RelationalDatabaseConfiguration__ConnectionString=Host=postgres;Port=5432;Database=${TWINENGINE_POSTGRES_DB:-twinengine};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+    env_file:
+      - path: ./generated-config/twinengine-dpp-plugin.env
+        required: false
+    networks:
+      - aas-ecosystem-network
+    healthcheck:
+      test: ["CMD-SHELL", "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/healthz >/dev/null || exit 1; else kill -0 1; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  twinengine-dataengine:
+    image: ghcr.io/aas-twinengine/dataengine:v1.2.0
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-twinengine-dataengine
+    ports:
+      - "8090:8080"
+    depends_on:
+      dpp-plugin:
+        condition: service_healthy
+      aasregistry-go:
+        condition: service_started
+      submodelregistry-go:
+        condition: service_started
+      aasrepository-go:
+        condition: service_started
+      submodelrepository-go:
+        condition: service_started
+      conceptdescriptionrepository-go:
+        condition: service_started
+      aas-seed-import:
+        condition: service_completed_successfully
+    environment:
+      - General__DataEngineRepositoryBaseUrl=http://twinengine-dataengine:8080
+      - General__CustomerDomainUrl=https://mm-software.com
+      - Plugins__Instances__0__Name=RelationalDatabasePlugin
+      - Plugins__Instances__0__baseUrl=http://dpp-plugin:8080
+      - Plugins__Instances__0__healthEndpoint=/healthz
+      - TemplateManagement__AasTemplateRepository__Name=AasTemplateRepository
+      - TemplateManagement__AasTemplateRepository__baseUrl=http://aasrepository-go:8080
+      - TemplateManagement__AasTemplateRepository__headerMappings__0__source=Authorization
+      - TemplateManagement__AasTemplateRepository__headerMappings__0__target=Authorization
+      - TemplateManagement__AasTemplateRepository__headerMappings__0__required=false
+      - TemplateManagement__AasTemplateRepository__healthEndpoint=/health
+      - TemplateManagement__SubmodelTemplateRepository__Name=SubmodelTemplateRepository
+      - TemplateManagement__SubmodelTemplateRepository__baseUrl=http://submodelrepository-go:8080
+      - TemplateManagement__SubmodelTemplateRepository__healthEndpoint=/health
+      - TemplateManagement__ConceptDescriptionTemplateRepository__Name=ConceptDescriptionTemplateRepository
+      - TemplateManagement__ConceptDescriptionTemplateRepository__baseUrl=http://conceptdescriptionrepository-go:8080
+      - TemplateManagement__ConceptDescriptionTemplateRepository__healthEndpoint=/health
+      - TemplateManagement__AasTemplateRegistry__Name=AasTemplateRegistry
+      - TemplateManagement__AasTemplateRegistry__baseUrl=http://aasregistry-go:8082
+      - TemplateManagement__AasTemplateRegistry__healthEndpoint=/health
+      - TemplateManagement__SubmodelTemplateRegistry__Name=SubmodelTemplateRegistry
+      - TemplateManagement__SubmodelTemplateRegistry__baseUrl=http://submodelregistry-go:8083
+      - TemplateManagement__SubmodelTemplateRegistry__healthEndpoint=/health
+
+    env_file:
+      - path: ./generated-config/twinengine-dataengine.env
+        required: false
+    networks:
+      - aas-ecosystem-network
+    healthcheck:
+      test: ["CMD-SHELL", "if command -v curl >/dev/null 2>&1; then curl -fsS http://127.0.0.1:8080/healthz >/dev/null || exit 1; else kill -0 1; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+  keycloak-dpp-bootstrap:
+    image: ${KEYCLOAK_IMAGE_REPO}:${KEYCLOAK_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-keycloak-dpp-bootstrap
+    entrypoint: ["/bin/bash", "/bootstrap/bootstrap-dpp-clients.sh"]
+    environment:
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      DPP_GATEWAY_CLIENT_SECRET: ${DPP_GATEWAY_CLIENT_SECRET}
+      DPP_POLICY_ADMIN_CLIENT_SECRET: ${DPP_POLICY_ADMIN_CLIENT_SECRET}
+    volumes:
+      - ./keycloak-bootstrap/bootstrap-dpp-clients.sh:/bootstrap/bootstrap-dpp-clients.sh:ro
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    restart: "no"
+
+  dppapi-go:
+    image: ${DPP_API_IMAGE_REPO}:${DPP_API_IMAGE_TAG}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-dppapi-go
+    environment:
+      SERVER_PORT: "8080"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DBNAME: ${BASYX_POSTGRES_DB}
+      BASYX_HISTORY_MODE: audit
+      GENERAL_EXTERNALURL: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/aas-proxy/aas-repo/
+      ABAC_ENABLED: "true"
+      ABAC_MODELPATH: /security_env/access-rules.json
+      OIDC_TRUSTLISTPATH: /security_env/trustlist.json
+      ABAC_POLICY_FILE_IMPORT: always
+    volumes:
+      - ./dpp-security:/security_env:ro
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+      keycloak-dpp-bootstrap:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  dpp-gateway:
+    image: ${DPP_GATEWAY_IMAGE_REPO}:${DPP_GATEWAY_IMAGE_TAG}
+    platform: ${DESIGNER_PLATFORM:-linux/amd64}
+    extra_hosts:
+      - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
+    container_name: ${PROJECT_NAME}-dpp-gateway
+    ports:
+      - "${DPP_GATEWAY_HOST_PORT:-5090}:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      DppGateway__Mode: SingleTenant
+      DppGateway__SingleTenantUpstreamBaseUrl: http://dppapi-go:8080
+      DppGateway__SingleTenantAttachmentBaseUrl: http://aasrepository-go:8081
+      DppGateway__PublicationRegistryConnectionString: Host=postgres;Port=5432;Database=${DPP_GATEWAY_POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      DppGateway__PublisherAuthority: ${KEYCLOAK_ISSUER}
+      DppGateway__PublisherMetadataAddress: ${KEYCLOAK_WELLKNOWN_URL}
+      DppGateway__PublisherValidIssuer: ${LOCAL_SCHEME:-http}://${LOCAL_HOSTNAME:-aas-ecosystem.local}/realms/aas-local
+      DppGateway__PublisherRequireHttpsMetadata: "false"
+      DppGateway__PublisherAudience: dpp-gateway-management
+      DppGateway__AccessTokenAudience: ${KEYCLOAK_AUDIENCE}
+      DppGateway__SingleTenantInfrastructureId: single-tenant
+      DppGateway__SingleTenantOAuth__Enabled: "true"
+      DppGateway__SingleTenantOAuth__TokenEndpoint: ${KEYCLOAK_ISSUER}/protocol/openid-connect/token
+      DppGateway__SingleTenantOAuth__ClientId: dpp-gateway
+      DppGateway__SingleTenantOAuth__ClientSecret: ${DPP_GATEWAY_CLIENT_SECRET}
+      DppGateway__SingleTenantOAuth__Scope: openid
+      DppGateway__SingleTenantOAuth__TokenExchangeEnabled: "true"
+      DppGateway__SingleTenantOAuth__Audience: dpp-api
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+      dppapi-go:
+        condition: service_started
+      keycloak-dpp-bootstrap:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  pgadmin:
+    image: ${PGADMIN_IMAGE_REPO:-dpage/pgadmin4}:${PGADMIN_IMAGE_TAG:-latest}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    container_name: ${PROJECT_NAME}-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@aas-ecosystem.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      # Desktop-Modus: kein pgAdmin-Login, kein Master-Passwort (nur lokal erreichbar, siehe ports)
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      # .local ist eine reservierte Domain und wird sonst vom E-Mail-Validator abgelehnt
+      PGADMIN_CONFIG_ALLOW_SPECIAL_EMAIL_DOMAINS: "['local']"
+      PGADMIN_SERVER_JSON_FILE: /tmp/pgadmin/servers.json
+      TWINENGINE_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /tmp/pgadmin
+        printf '%s\n' "postgres:5432:*:${POSTGRES_USER}:$$TWINENGINE_DB_PASSWORD" > /tmp/pgadmin/pgpass
+        chmod 600 /tmp/pgadmin/pgpass
+        cat >/tmp/pgadmin/servers.json <<EOF
+        {
+          "Servers": {
+            "1": {
+              "Name": "TwinEngine",
+              "Group": "AAS Ecosystem",
+              "Host": "postgres",
+              "Port": 5432,
+              "MaintenanceDB": "${TWINENGINE_POSTGRES_DB:-twinengine}",
+              "Username": "${POSTGRES_USER}",
+              "PassFile": "/tmp/pgadmin/pgpass",
+              "SSLMode": "prefer"
+            }
+          }
+        }
+        EOF
+        exec /entrypoint.sh
+    ports:
+      - "127.0.0.1:5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - aas-ecosystem-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+#### TODO: proxy konfigurieren
+  proxy:
+    container_name: aas-proxy
+    image: ghcr.io/meta-level-public/aasdemoproxy:latest
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    restart: always
+    env_file:
+      - .env.proxy # ProxyConfiguration aus Umgebungsvariablen laden
+    networks:
+      - aas-ecosystem-network
+
+networks:
+  aas-ecosystem-network:
+    driver: bridge
+
+volumes:
+  aas-ecosystem-postgres:
+    driver: local
+  keycloak-realm-import:
+    driver: local
+  twinengine-config-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+  gateway-data-protection:
+    driver: local
+  designer-storage:
+    driver: local

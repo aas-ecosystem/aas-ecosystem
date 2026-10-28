@@ -1,0 +1,35 @@
+{
+  "InfrastructureId": 1,
+  "Profile": "Custom",
+  "RawPolicyJson": "{\n  \u0022AllAccessPermissionRules\u0022: {\n    \u0022DEFATTRIBUTES\u0022: [\n      {\n        \u0022name\u0022: \u0022dpp_role\u0022,\n        \u0022attributes\u0022: [\n          {\n            \u0022CLAIM\u0022: \u0022role\u0022\n          }\n        ]\n      }\n    ],\n    \u0022DEFOBJECTS\u0022: [\n      {\n        \u0022name\u0022: \u0022routes_0\u0022,\n        \u0022objects\u0022: [\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dpps/*\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dppsByProductId/*\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dppsByIdAndDate/*\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dppsByProductIds\u0022\n          }\n        ]\n      },\n      {\n        \u0022name\u0022: \u0022routes_1\u0022,\n        \u0022objects\u0022: [\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dpps/*\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dppsByProductId/*\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dppsByIdAndDate/*\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/v1/dppsByProductIds\u0022\n          }\n        ]\n      },\n      {\n        \u0022name\u0022: \u0022policy_management_routes\u0022,\n        \u0022objects\u0022: [\n          {\n            \u0022ROUTE\u0022: \u0022/security/abac\u0022\n          },\n          {\n            \u0022ROUTE\u0022: \u0022/security/abac/*\u0022\n          }\n        ]\n      }\n    ],\n    \u0022DEFACLS\u0022: [\n      {\n        \u0022name\u0022: \u0022policy_admin\u0022,\n        \u0022acl\u0022: {\n          \u0022USEATTRIBUTES\u0022: \u0022dpp_role\u0022,\n          \u0022RIGHTS\u0022: [\n            \u0022ALL\u0022\n          ],\n          \u0022ACCESS\u0022: \u0022ALLOW\u0022\n        }\n      }\n    ],\n    \u0022DEFFORMULAS\u0022: [\n      {\n        \u0022name\u0022: \u0022is_policy_admin\u0022,\n        \u0022formula\u0022: {\n          \u0022$eq\u0022: [\n            {\n              \u0022$attribute\u0022: {\n                \u0022CLAIM\u0022: \u0022role\u0022\n              }\n            },\n            {\n              \u0022$strVal\u0022: \u0022policy-admin\u0022\n            }\n          ]\n        }\n      }\n    ],\n    \u0022rules\u0022: [\n      {\n        \u0022USEOBJECTS\u0022: [\n          \u0022routes_0\u0022\n        ],\n        \u0022ACL\u0022: {\n          \u0022ATTRIBUTES\u0022: [\n            {\n              \u0022CLAIM\u0022: \u0022role\u0022\n            }\n          ],\n          \u0022RIGHTS\u0022: [\n            \u0022READ\u0022\n          ],\n          \u0022ACCESS\u0022: \u0022ALLOW\u0022\n        },\n        \u0022FORMULA\u0022: {\n          \u0022$eq\u0022: [\n            {\n              \u0022$attribute\u0022: {\n                \u0022CLAIM\u0022: \u0022role\u0022\n              }\n            },\n            {\n              \u0022$strVal\u0022: \u0022viewer\u0022\n            }\n          ]\n        }\n      },\n      {\n        \u0022USEOBJECTS\u0022: [\n          \u0022routes_1\u0022\n        ],\n        \u0022ACL\u0022: {\n          \u0022ATTRIBUTES\u0022: [\n            {\n              \u0022CLAIM\u0022: \u0022role\u0022\n            }\n          ],\n          \u0022RIGHTS\u0022: [\n            \u0022READ\u0022\n          ],\n          \u0022ACCESS\u0022: \u0022ALLOW\u0022\n        },\n        \u0022FORMULA\u0022: {\n          \u0022$eq\u0022: [\n            {\n              \u0022$attribute\u0022: {\n                \u0022CLAIM\u0022: \u0022role\u0022\n              }\n            },\n            {\n              \u0022$strVal\u0022: \u0022partner\u0022\n            }\n          ]\n        }\n      },\n      {\n        \u0022USEACL\u0022: \u0022policy_admin\u0022,\n        \u0022USEOBJECTS\u0022: [\n          \u0022policy_management_routes\u0022\n        ],\n        \u0022USEFORMULA\u0022: \u0022is_policy_admin\u0022\n      }\n    ]\n  }\n}",
+  "Rules": [
+    {
+      "Name": "anonymous_read",
+      "Role": "anonymous",
+      "Enabled": true,
+      "DppScope": "All",
+      "DppIds": [],
+      "ConditionCombination": "All",
+      "DppConditions": [],
+      "VisibleSemanticIds": [],
+      "GetById": true,
+      "GetByProductId": true,
+      "GetByIdAndDate": true,
+      "GetByProductIds": true
+    },
+    {
+      "Name": "partner_read",
+      "Role": "partner",
+      "Enabled": true,
+      "DppScope": "All",
+      "DppIds": [],
+      "ConditionCombination": "All",
+      "DppConditions": [],
+      "VisibleSemanticIds": [],
+      "GetById": true,
+      "GetByProductId": true,
+      "GetByIdAndDate": true,
+      "GetByProductIds": true
+    }
+  ]
+}

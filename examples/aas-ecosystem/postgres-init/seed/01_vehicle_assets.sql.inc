@@ -1,0 +1,62 @@
+INSERT INTO "Asset" (
+    "ProductId","IdShort","GlobalAssetId","AasId","AssetKind","AssetType",
+    "ThumbnailContentType","ThumbnailPath","MaintenanceFreeAsset",
+    "UriOfTheProduct","ManufacturerProductType","OrderCodeOfManufacturer","ProductArticleNumberOfManufacturer",
+    "SerialNumber","YearOfConstruction","DateOfManufacture","HardwareVersion","FirmwareVersion","SoftwareVersion",
+    "CountryOfOrigin","UniqueFacilityIdentifier",
+    "AddressInformationStreet_en","AddressInformationStreet_de","AddressInformationZipcode_en",
+    "AddressInformationZipcode_de","AddressInformationCityTown_en","AddressInformationCityTown_de",
+    "AddressInformationNationalCode_en","AddressInformationNationalCode_de","ManufacturerName","ManufacturerProductDesignation_en",
+    "ManufacturerProductDesignation_de","ManufacturerProductRoot_en","ManufacturerProductRoot_de",
+    "ManufacturerProductFamily_en","ManufacturerProductFamily_de","CompanyLogo","ManufacturerArticleNumber",
+    "ManufacturerOrderCode","ProductImage","ManufacturerLogo","TextStatement_en","TextStatement_de",
+    "ValidDate","PcfCalculationMethod","LifeCyclePhase","PcfCO2eq","ReferenceImpactUnitForCalculation",
+    "QuantityOfMeasureForCalculation","PublicationDate","ExpirationDate","ExplanatoryStatement"
+) VALUES
+(
+    '000-001','BMW_320i','https://mm-software.com/ids/assets/000-001','https://mm-software.com/ids/aas/000-001',
+    'Instance','PetrolPassengerCar','image/jpeg',
+    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=85',
+    FALSE,'https://www.bmw.com/','320i 2.0 Petrol (E90)',
+    'DEMO-BMW-320I-2010','BMW-320I-2010-DEMO','DEMO-BMW320I-2010-0001',2010,'2010-04-18',
+    'E90','demo-1.0','demo-1.0','DE','BMW-MUNICH-DEMO-01',
+    'Petuelring 130','Petuelring 130','80809','80809','Munich','Muenchen','DE','DE',
+    'BMW AG','BMW 320i','BMW 320i','BMW 3 Series','BMW 3er','3 Series','3er',
+    'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg','BMW-320I-E90',
+    'DEMO-BMW-320I-2010',
+    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=85',
+    'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg',
+    'Illustrative demonstration record. Vehicle specifications are representative; serial numbers and carbon-footprint values are synthetic.',
+    'Beispieldatensatz. Die Fahrzeugdaten sind repräsentativ; Seriennummern und CO2-Fussabdruckwerte sind synthetisch.',
+    '2027-04-18','ISO 14067 (illustrative estimate)','Cradle-to-gate (A1-A3)',6100,'kg CO2e',1,
+    '2026-10-22T00:00:00Z','2034-10-22T00:00:00Z',
+    'Illustrative manufacturing footprint estimate for one vehicle; not a verified manufacturer declaration.'
+),
+(
+    '000-002','Toyota_Corolla_16','https://mm-software.com/ids/assets/000-002','https://mm-software.com/ids/aas/000-002',
+    'Instance','PetrolPassengerCar','image/jpeg',
+    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85',
+    FALSE,'https://www.toyota-europe.com/','Corolla 1.6 Petrol (E150)',
+    'DEMO-TOYOTA-COROLLA-16-2012','TOYOTA-COROLLA-2012-DEMO','DEMO-TOYOTA-2012-0002',2012,'2012-06-12',
+    'E150','demo-1.0','demo-1.0','JP','TOYOTA-TSUTSUMI-DEMO-02',
+    '1 Toyota-cho','1 Toyota-cho','471-8571','471-8571','Toyota City','Toyota City','JP','JP',
+    'Toyota Motor Corporation','Corolla 1.6','Corolla 1.6',
+    'Corolla Sedan','Corolla Limousine','Corolla','Corolla',
+    'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg','TOYOTA-COROLLA-16-E150',
+    'DEMO-TOYOTA-COROLLA-16-2012',
+    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85',
+    'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg',
+    'Illustrative demonstration record. Vehicle specifications are representative; serial numbers and carbon-footprint values are synthetic.',
+    'Beispieldatensatz. Die Fahrzeugdaten sind repräsentativ; Seriennummern und CO2-Fussabdruckwerte sind synthetisch.',
+    '2027-06-12','ISO 14067 (illustrative estimate)','Cradle-to-gate (A1-A3)',5400,'kg CO2e',1,
+    '2026-10-22T00:00:00Z','2034-10-22T00:00:00Z',
+    'Illustrative manufacturing footprint estimate for one vehicle; not a verified manufacturer declaration.'
+);
+
+INSERT INTO "SpecificAssetIds" ("ProductId","Name","Value") VALUES
+('000-001','DemoSerialNumber','DEMO-BMW320I-2010-0001'),
+('000-001','ModelYear','2010'),
+('000-001','Powertrain','2.0-litre petrol'),
+('000-002','DemoSerialNumber','DEMO-TOYOTA-2012-0002'),
+('000-002','ModelYear','2012'),
+('000-002','Powertrain','1.6-litre petrol');
