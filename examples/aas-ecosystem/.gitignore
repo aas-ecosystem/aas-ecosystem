@@ -2,4 +2,28 @@
 .env
 .env.proxy
 
+# Angular build output
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.vscode/
+.history/
+
+# Angular and test caches
+.angular/cache/
+.sass-cache/
+coverage/
+testem.log
+
+# System files
 .DS_Store
+Thumbs.db

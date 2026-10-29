@@ -1,0 +1,34 @@
+<form [formGroup]="form()" (ngSubmit)="save.emit(toValue())">
+  @for (section of sections(); track section.key) {
+    <app-field-group [legend]="section.title">
+      @for (group of section.groups ?? []; track group.key) {
+        <app-field-group class="col-12" [legend]="group.title">
+          @for (field of group.fields; track field.key) {
+            <app-text-field
+              [label]="field.label"
+              [type]="field.type ?? 'text'"
+              [control]="control(section.key, group.key, field.key)"
+              [fullWidth]="creationMode()"
+            />
+          }
+        </app-field-group>
+      }
+      @for (field of section.fields; track field.key) {
+        <app-text-field
+          [label]="field.label"
+          [type]="field.type ?? 'text'"
+          [control]="control(section.key, field.key)"
+          [fullWidth]="creationMode()"
+        />
+      }
+    </app-field-group>
+  }
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-outline-secondary" (click)="cancelled.emit()">
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-primary" [disabled]="saving() || form().pristine">
+      {{ saving() ? 'Saving...' : submitLabel() }}
+    </button>
+  </div>
+</form>
