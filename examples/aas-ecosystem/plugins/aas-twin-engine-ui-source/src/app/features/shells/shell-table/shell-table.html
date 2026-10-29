@@ -1,0 +1,51 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead class="table-light">
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">ID</th>
+        <th scope="col">Global Asset ID</th>
+        <th scope="col">Asset Kind</th>
+        <th scope="col">Asset Type</th>
+        <th scope="col" class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (shell of shells(); track shell.id) {
+        <tr>
+          <td class="fw-semibold">{{ shell.idShort || '-' }}</td>
+          <td class="text-truncate" style="max-width: 260px" [title]="shell.id">
+            {{ shell.id }}
+          </td>
+          <td class="text-truncate" style="max-width: 260px" [title]="shell.globalAssetId ?? ''">
+            {{ shell.globalAssetId || '-' }}
+          </td>
+          <td>
+            @if (shell.assetKind) {
+              <span class="badge text-bg-secondary">{{ shell.assetKind }}</span>
+            } @else {
+              -
+            }
+          </td>
+          <td>{{ shell.assetType || '-' }}</td>
+          <td class="text-end text-nowrap">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary me-2"
+              (click)="edit.emit(shell)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              (click)="delete.emit(shell)"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
