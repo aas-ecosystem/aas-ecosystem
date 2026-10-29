@@ -1,0 +1,88 @@
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <h2 class="h5 mb-0">Products</h2>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()">
+        + Add New Product
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card-body text-center text-body-secondary py-5">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Loading products...
+    </div>
+  } @else if (error()) {
+    <div class="card-body">
+      <div class="alert alert-danger mb-0">{{ error() }}</div>
+    </div>
+  } @else if (shells().length === 0) {
+    <div class="card-body text-center text-body-secondary py-5">No products found.</div>
+  } @else {
+    <app-shell-table
+      [shells]="shells()"
+      (edit)="openEdit($event)"
+      (delete)="openDelete($event)"
+    />
+  }
+</div>
+
+@if (formState(); as state) {
+  <app-modal
+    [title]="state.shell ? 'Edit ' + (state.shell.idShort || state.shell.id) : 'Add New Product'"
+    (closed)="closeForm()"
+  >
+    @if (state.data; as data) {
+      @if (formError(); as message) {
+        <div class="alert alert-danger" role="alert">{{ message }}</div>
+      }
+      <app-shell-edit-form
+        [data]="data"
+        [creationMode]="!state.shell"
+        [saving]="saving()"
+        [submitLabel]="state.shell ? 'Save' : 'Create'"
+        (save)="submitForm(state.shell, $event)"
+        (cancelled)="closeForm()"
+      />
+    } @else {
+      @if (formError(); as message) {
+        <div class="alert alert-danger mb-0" role="alert">{{ message }}</div>
+      } @else {
+        <div class="text-center text-body-secondary py-4">
+        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+        Loading...
+        </div>
+      }
+    }
+  </app-modal>
+}
+
+@if (pendingDelete(); as shell) {
+  <app-modal title="Delete product" size="sm" (closed)="cancelDelete()">
+    <p class="mb-0">
+      Are you sure you want to delete <strong>{{ shell.idShort || shell.id }}</strong>?
+    </p>
+    @if (deleteError(); as message) {
+      <div class="alert alert-danger mt-3 mb-0" role="alert">{{ message }}</div>
+    }
+    <ng-container modal-actions>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="cancelDelete()"
+        [disabled]="deleting()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="confirmDelete(shell)"
+        [disabled]="deleting()"
+      >
+        {{ deleting() ? 'Deleting...' : 'Delete' }}
+      </button>
+    </ng-container>
+  </app-modal>
+}

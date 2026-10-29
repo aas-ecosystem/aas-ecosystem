@@ -1,0 +1,102 @@
+
+# ==========================================
+# .NET / C# build output
+# ==========================================
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rtifacts/
+publish/
+
+# ==========================================
+# Visual Studio
+# ==========================================
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.sln.ide
+
+# ==========================================
+# VS Code (ignore workspace-specific state)
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.vscode/
+
+
+# ==========================================
+# Rider / JetBrains
+# ==========================================
+.idea/
+*.sln.iml
+
+# ==========================================
+# Test results and coverage
+# ==========================================
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# ==========================================
+# Local environment and secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Local.json
+appsettings.*.Local.json
+*.pfx
+*.p12
+*.key
+*.pem
+
+# ==========================================
+# Logs and temporary files
+# ==========================================
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# ==========================================
+# NuGet / package caches
+# ==========================================
+packages/
+.nuget/
+
+# ==========================================
+# Node.js / frontend (if applicable)
+# ==========================================
+node_modules/
+dist/
+.angular/
+.npm/
+
+# ==========================================
+# Docker / local development
+# ==========================================
+docker-compose.override.yml
+
+# ==========================================
+# OS-generated files
+# ==========================================
+.DS_Store
+Thumbs.db
+Desktop.ini
+# ==========================================
