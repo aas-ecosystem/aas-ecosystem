@@ -1,29 +1,102 @@
 
-.env
-.env.proxy
+# ==========================================
+# .NET / C# build output
+# ==========================================
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rtifacts/
+publish/
 
-# Angular build output
-dist/
-tmp/
-out-tsc/
-bazel-out/
+# ==========================================
+# Visual Studio
+# ==========================================
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.sln.ide
 
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# IDEs and editors
-.idea/
+# ==========================================
+# VS Code (ignore workspace-specific state)
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
 .vscode/
-.history/
 
-# Angular and test caches
-.angular/cache/
-.sass-cache/
+
+# ==========================================
+# Rider / JetBrains
+# ==========================================
+.idea/
+*.sln.iml
+
+# ==========================================
+# Test results and coverage
+# ==========================================
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
 coverage/
-testem.log
+coverage.*
+*.coverage
+*.coveragexml
 
-# System files
+# ==========================================
+# Local environment and secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Local.json
+appsettings.*.Local.json
+*.pfx
+*.p12
+*.key
+*.pem
+
+# ==========================================
+# Logs and temporary files
+# ==========================================
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# ==========================================
+# NuGet / package caches
+# ==========================================
+packages/
+.nuget/
+
+# ==========================================
+# Node.js / frontend (if applicable)
+# ==========================================
+node_modules/
+dist/
+.angular/
+.npm/
+
+# ==========================================
+# Docker / local development
+# ==========================================
+docker-compose.override.yml
+
+# ==========================================
+# OS-generated files
+# ==========================================
 .DS_Store
 Thumbs.db
+Desktop.ini
+# ==========================================
