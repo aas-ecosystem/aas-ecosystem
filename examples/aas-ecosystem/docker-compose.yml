@@ -682,7 +682,7 @@ services:
     restart: "no"
 
   dpp-plugin:
-    image: ghcr.io/aas-twinengine/plugindpp:v1.2.0
+    image: ghcr.io/aas-twinengine/plugindpp:data-CRUD-2ae11df
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     extra_hosts:
       - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
