@@ -4,7 +4,11 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@a
 import { ShellEditData } from '../../../core/models/shell.models';
 import { FieldGroupComponent } from '../../../shared/components/field-group/field-group';
 import { TextFieldComponent } from '../../../shared/components/text-field/text-field';
-import { SHELL_CREATE_SECTIONS, SHELL_EDIT_SECTIONS } from './shell-edit.fields';
+import {
+  SHELL_CREATE_PCF_UNIT,
+  SHELL_CREATE_SECTIONS,
+  SHELL_EDIT_SECTIONS,
+} from './shell-edit.fields';
 
 @Component({
   selector: 'app-shell-edit-form',
@@ -22,7 +26,20 @@ export class ShellEditFormComponent {
   protected readonly sections = computed(() =>
     this.creationMode() ? SHELL_CREATE_SECTIONS : SHELL_EDIT_SECTIONS,
   );
-  protected readonly form = computed(() => toFormGroup(this.data()));
+  protected readonly form = computed(() => {
+    const data = this.data();
+    return toFormGroup(
+      this.creationMode()
+        ? {
+            ...data,
+            carbonFootprint: {
+              ...data.carbonFootprint,
+              referenceImpactUnitForCalculation: SHELL_CREATE_PCF_UNIT,
+            },
+          }
+        : data,
+    );
+  });
 
   protected control(...path: string[]): FormControl<string> {
     return this.form().get(path) as FormControl<string>;

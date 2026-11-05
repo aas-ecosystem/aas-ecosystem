@@ -19,6 +19,7 @@
           [type]="field.type ?? 'text'"
           [control]="control(section.key, field.key)"
           [fullWidth]="creationMode()"
+          [suffix]="field.suffix ?? ''"
         />
       }
     </app-field-group>

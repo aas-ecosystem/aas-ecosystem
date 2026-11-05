@@ -1,8 +1,14 @@
 <label class="form-label small text-body-secondary mb-1" [for]="id">{{ label() }}</label>
-<input
-  class="form-control form-control-sm"
-  [id]="id"
-  [type]="type()"
-  [attr.step]="type() === 'number' ? 'any' : null"
-  [formControl]="control()"
-/>
+<div [class.input-group]="suffix()" [class.input-group-sm]="suffix()">
+  <input
+    class="form-control form-control-sm"
+    [id]="id"
+    [type]="type()"
+    [attr.step]="type() === 'number' ? 'any' : null"
+    [attr.aria-describedby]="suffix() ? id + '-suffix' : null"
+    [formControl]="control()"
+  />
+  @if (suffix()) {
+    <span class="input-group-text" [id]="id + '-suffix'">{{ suffix() }}</span>
+  }
+</div>
