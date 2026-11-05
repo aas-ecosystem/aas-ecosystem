@@ -1,5 +1,15 @@
 # AAS Suite GUI Plugins
 
+## TwinEngine UI backend configuration
+
+The TwinEngine UI backend runs inside `aas-designer-community`, not inside the
+DPP container. That host needs `RelationalDatabaseConfiguration__ConnectionString`
+pointing to the same TwinEngine database as DPP. `TWINENGINE_DB_CONNECTION_STRING`
+is used by the configuration plugin and does not configure the UI product API.
+The local Compose file supplies both settings. After changing them, recreate
+`aas-designer-community`; restarting alone does not update container environment
+variables.
+
 This folder contains GUI plugins for the AAS Suite backend plugin directory. The backend scans ZIP files directly in this folder when the local Docker templates mount `../plugins` to `/app/plugins`.
 
 ## Quick Start

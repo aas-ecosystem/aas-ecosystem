@@ -83,6 +83,13 @@ export interface ProductUpdateRequest extends ProductRequest {
   height: string;
 }
 
+export interface ProductResponse {
+  productId: string;
+  idShort: string;
+  aasId: string;
+  globalAssetId: string;
+}
+
 export const EMPTY_SHELL_EDIT_DATA: ShellEditData = {
   nameplate: {
     addressInformation: { street: '', zipcode: '', cityTown: '', nationalCode: '' },

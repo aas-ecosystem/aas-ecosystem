@@ -20,8 +20,10 @@ export class ShellEditFormComponent {
   readonly creationMode = input(false);
   readonly saving = input(false);
   readonly submitLabel = input('Save');
+  readonly deletable = input(false);
   readonly save = output<ShellEditData>();
   readonly cancelled = output<void>();
+  readonly deleteRequested = output<void>();
 
   protected readonly sections = computed(() =>
     this.creationMode() ? SHELL_CREATE_SECTIONS : SHELL_EDIT_SECTIONS,
