@@ -103,7 +103,7 @@ export class ShellService {
     }
 
     return {
-      name: data.nameplate.name,
+      name: data.nameplate.name.replace(/\s+/g, ''),
       dateOfManufacture: data.nameplate.dateOfManufacture,
       manufacturerName: data.technicalData.manufacturerName,
       manufacturerArticleNumber: data.technicalData.manufacturerArticleNumber,
