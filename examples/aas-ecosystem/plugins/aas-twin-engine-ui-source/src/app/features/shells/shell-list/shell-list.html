@@ -2,6 +2,14 @@
   <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
     <h2 class="h5 mb-0">Products</h2>
     <div class="d-flex gap-2">
+      <button
+        type="button"
+        class="btn btn-outline-danger btn-sm"
+        (click)="openReset()"
+        [disabled]="resetting()"
+      >
+        Reset Data
+      </button>
       <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()">
         + Add New Product
       </button>
@@ -20,11 +28,7 @@
   } @else if (shells().length === 0) {
     <div class="card-body text-center text-body-secondary py-5">No products found.</div>
   } @else {
-    <app-shell-table
-      [shells]="shells()"
-      (edit)="openEdit($event)"
-      (delete)="openDelete($event)"
-    />
+    <app-shell-table [shells]="shells()" (edit)="openEdit($event)" />
   }
 </div>
 
@@ -40,10 +44,12 @@
       <app-shell-edit-form
         [data]="data"
         [creationMode]="!state.shell"
+        [deletable]="!!state.shell && canDelete(state.shell)"
         [saving]="saving()"
         [submitLabel]="state.shell ? 'Save' : 'Create'"
         (save)="submitForm(state.shell, $event)"
         (cancelled)="closeForm()"
+        (deleteRequested)="state.shell && requestDeleteFromForm(state.shell)"
       />
     } @else {
       @if (formError(); as message) {
@@ -82,6 +88,36 @@
         [disabled]="deleting()"
       >
         {{ deleting() ? 'Deleting...' : 'Delete' }}
+      </button>
+    </ng-container>
+  </app-modal>
+}
+
+@if (resetConfirmOpen()) {
+  <app-modal title="Reset data" size="sm" (closed)="cancelReset()">
+    <p class="mb-0">
+      Are you sure you want to reset the data? All products and related records will be
+      deleted and replaced with the default demo data. This cannot be undone.
+    </p>
+    @if (resetError(); as message) {
+      <div class="alert alert-danger mt-3 mb-0" role="alert">{{ message }}</div>
+    }
+    <ng-container modal-actions>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="cancelReset()"
+        [disabled]="resetting()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="confirmReset()"
+        [disabled]="resetting()"
+      >
+        {{ resetting() ? 'Resetting...' : 'Yes, reset' }}
       </button>
     </ng-container>
   </app-modal>

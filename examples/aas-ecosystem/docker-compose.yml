@@ -291,6 +291,7 @@ services:
       TWINENGINE_DPP_PLUGIN_EXPORT_PATH: /app/generated-config/twinengine-dpp-plugin.env
       TWINENGINE_DOCKER_HOST: unix:///var/run/docker.sock
       TWINENGINE_DB_CONNECTION_STRING: Host=postgres;Port=5432;Database=${TWINENGINE_POSTGRES_DB:-twinengine};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      RelationalDatabaseConfiguration__ConnectionString: Host=postgres;Port=5432;Database=${TWINENGINE_POSTGRES_DB:-twinengine};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       TWINENGINE_SUBMODEL_TEMPLATE_REPOSITORY_URL: http://submodelrepository-go:8080
       EmailConfiguration__SmtpServer: ${SMTP_SERVER}
       EmailConfiguration__SmtpPort: ${SMTP_PORT}
@@ -682,7 +683,7 @@ services:
     restart: "no"
 
   dpp-plugin:
-    image: ghcr.io/aas-twinengine/plugindpp:data-CRUD-2ae11df
+    image: ghcr.io/aas-twinengine/plugindpp:v1.2.0
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     extra_hosts:
       - "${LOCAL_HOSTNAME:-aas-ecosystem.local}:host-gateway"
@@ -737,7 +738,7 @@ services:
       aas-seed-import:
         condition: service_completed_successfully
     environment:
-      - General__DataEngineRepositoryBaseUrl=http://twinengine-dataengine:8080
+      - General__DataEngineRepositoryBaseUrl=http://localhost:8090
       - General__CustomerDomainUrl=https://mm-software.com
       - Plugins__Instances__0__Name=RelationalDatabasePlugin
       - Plugins__Instances__0__baseUrl=http://dpp-plugin:8080

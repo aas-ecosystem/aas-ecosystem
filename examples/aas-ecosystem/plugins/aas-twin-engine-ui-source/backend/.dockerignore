@@ -1,0 +1,8 @@
+bin
+obj
+Tests
+**/bin
+**/obj
+appsettings.Development.json
+*.user
+.env

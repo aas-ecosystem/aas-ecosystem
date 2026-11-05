@@ -12,6 +12,8 @@ import { ModalComponent } from '../../../shared/components/modal/modal';
 import { ShellEditFormComponent } from '../shell-edit-form/shell-edit-form';
 import { ShellTableComponent } from '../shell-table/shell-table';
 
+const PROTECTED_PRODUCT_IDS: ReadonlySet<string> = new Set(['000-001', '000-002']);
+
 // null shell means the form is creating a new product
 interface FormState {
   shell: ShellDescriptor | null;
@@ -36,6 +38,9 @@ export class ShellListComponent implements OnInit {
   protected readonly pendingDelete = signal<ShellDescriptor | null>(null);
   protected readonly deleting = signal(false);
   protected readonly deleteError = signal<string | null>(null);
+  protected readonly resetConfirmOpen = signal(false);
+  protected readonly resetting = signal(false);
+  protected readonly resetError = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadShells();
@@ -85,6 +90,36 @@ export class ShellListComponent implements OnInit {
     this.formError.set(null);
   }
 
+  protected openReset(): void {
+    this.resetError.set(null);
+    this.resetConfirmOpen.set(true);
+  }
+
+  protected cancelReset(): void {
+    if (this.resetting()) {
+      return;
+    }
+
+    this.resetConfirmOpen.set(false);
+    this.resetError.set(null);
+  }
+
+  protected confirmReset(): void {
+    this.resetting.set(true);
+    this.resetError.set(null);
+    this.shellService.resetData().subscribe({
+      next: () => {
+        this.resetting.set(false);
+        this.resetConfirmOpen.set(false);
+        this.loadShells();
+      },
+      error: (error: unknown) => {
+        this.resetting.set(false);
+        this.resetError.set(error instanceof Error ? error.message : 'Failed to reset data.');
+      },
+    });
+  }
+
   protected submitForm(shell: ShellDescriptor | null, data: ShellEditData): void {
     const productId = shell ? this.getProductId(shell) : null;
     if (shell && !productId) {
@@ -100,9 +135,7 @@ export class ShellListComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.closeForm();
-        if (!shell) {
-          this.loadShells();
-        }
+        this.loadShells();
       },
       error: (error: unknown) => {
         this.saving.set(false);
@@ -119,6 +152,20 @@ export class ShellListComponent implements OnInit {
 
     const identifierSegments = shell.id.split('/').filter(Boolean);
     return identifierSegments[identifierSegments.length - 1] ?? null;
+  }
+
+  protected canDelete(shell: ShellDescriptor): boolean {
+    const productId = this.getProductId(shell);
+    return !!productId && !PROTECTED_PRODUCT_IDS.has(productId);
+  }
+
+  protected requestDeleteFromForm(shell: ShellDescriptor): void {
+    if (this.saving()) {
+      return;
+    }
+
+    this.closeForm();
+    this.openDelete(shell);
   }
 
   protected openDelete(shell: ShellDescriptor): void {
@@ -139,6 +186,11 @@ export class ShellListComponent implements OnInit {
     const productId = this.getProductId(shell);
     if (!productId) {
       this.deleteError.set('Cannot delete this product because its product ID is missing.');
+      return;
+    }
+
+    if (PROTECTED_PRODUCT_IDS.has(productId)) {
+      this.deleteError.set('This product is protected and cannot be deleted.');
       return;
     }
 

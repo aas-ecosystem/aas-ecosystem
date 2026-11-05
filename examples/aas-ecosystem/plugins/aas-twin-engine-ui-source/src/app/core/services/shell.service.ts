@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, defer, forkJoin, map, throwError } from 'rxjs';
+import { Observable, catchError, defer, forkJoin, map, throwError } from 'rxjs';
 
 import { AppConfigService } from '../config/app-config.service';
 import {
@@ -9,6 +9,7 @@ import {
   EMPTY_SHELL_EDIT_DATA,
   NameplateData,
   ProductRequest,
+  ProductResponse,
   ProductUpdateRequest,
   ShellDescriptor,
   ShellDescriptorResponse,
@@ -40,36 +41,58 @@ export class ShellService {
         nameplate: this.getSubmodelData(submodels.nameplate),
         carbonFootprint: this.getSubmodelData(submodels.carbonFootprint),
         technicalData: this.getSubmodelData(submodels.technicalData),
-      }).pipe(map(({ nameplate, carbonFootprint, technicalData }) => ({
-        nameplate: this.toNameplateData(nameplate),
-        carbonFootprint: this.toCarbonFootprintData(carbonFootprint),
-        technicalData: this.toTechnicalData(technicalData),
-      })));
+      }).pipe(
+        map(({ nameplate, carbonFootprint, technicalData }) => ({
+          nameplate: this.toNameplateData(nameplate),
+          carbonFootprint: this.toCarbonFootprintData(carbonFootprint),
+          technicalData: this.toTechnicalData(technicalData),
+        })),
+      );
     });
   }
 
-  createProduct(data: ShellEditData): Observable<unknown> {
+  createProduct(data: ShellEditData): Observable<ProductResponse> {
     return defer(() =>
-      this.http.post<unknown>(
-        `${this.config.apiBaseUrl}/submodel-data/products`,
+      this.http.post<ProductResponse>(
+        `${this.config.writeApiBaseUrl}/submodel-data/products`,
         this.toProductRequest(data),
       ),
-    );
+    ).pipe(catchError((error: unknown) => this.handleWriteError(error)));
   }
 
-  updateShellEditData(id: string, data: ShellEditData): Observable<unknown> {
+  updateShellEditData(id: string, data: ShellEditData): Observable<ProductResponse> {
     return defer(() =>
-      this.http.put<unknown>(
-        `${this.config.apiBaseUrl}/submodel-data/products/${encodeURIComponent(id)}`,
+      this.http.put<ProductResponse>(
+        `${this.config.writeApiBaseUrl}/submodel-data/products/${encodeURIComponent(id)}`,
         this.toProductUpdateRequest(id, data),
       ),
-    );
+    ).pipe(catchError((error: unknown) => this.handleWriteError(error)));
   }
 
   deleteShell(productId: string): Observable<void> {
-    return this.http.delete<void>(
-      `${this.config.apiBaseUrl}/submodel-data/products/${encodeURIComponent(productId)}`,
-    );
+    return this.http
+      .delete<void>(
+        `${this.config.writeApiBaseUrl}/submodel-data/products/${encodeURIComponent(productId)}`,
+      )
+      .pipe(catchError((error: unknown) => this.handleWriteError(error)));
+  }
+
+  resetData(): Observable<void> {
+    return this.http
+      .post<void>(`${this.config.writeApiBaseUrl}/submodel-data/reset`, null)
+      .pipe(catchError((error: unknown) => this.handleWriteError(error)));
+  }
+
+  private handleWriteError(error: unknown): Observable<never> {
+    if (error instanceof HttpErrorResponse) {
+      const body = this.asRecord(error.error);
+      const detail = body?.['detail'];
+      if (typeof detail === 'string' && detail.trim()) {
+        return throwError(() => new Error(detail));
+      }
+    }
+
+    return throwError(() => error);
   }
 
   private toProductRequest(data: ShellEditData): ProductRequest {
@@ -107,13 +130,14 @@ export class ShellService {
 
   private findSubmodel(shell: ShellDescriptor, name: string): SubmodelDescriptor {
     const descriptor = shell.submodelDescriptors?.find((submodel) =>
-      [
-        submodel.idShort,
-        submodel.id,
-        ...(submodel.semanticId?.keys ?? []).map((key) => key.value),
-      ]
+      [submodel.idShort, submodel.id, ...(submodel.semanticId?.keys ?? []).map((key) => key.value)]
         .filter((value): value is string => Boolean(value))
-        .some((value) => value.toLowerCase().replace(/[^a-z]/g, '').includes(name)),
+        .some((value) =>
+          value
+            .toLowerCase()
+            .replace(/[^a-z]/g, '')
+            .includes(name),
+        ),
     );
 
     if (!descriptor) {

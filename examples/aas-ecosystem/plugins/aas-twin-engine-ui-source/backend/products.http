@@ -1,0 +1,95 @@
+@baseUrl = http://localhost:5085
+@productId = REPLACE_WITH_CREATED_PRODUCT_ID
+
+### AAS Suite-hosted plugin liveness (use your AAS Suite origin)
+GET http://aas-ecosystem.localhost/designer-api/plugin-api/aas-twin-engine-ui/healthz
+
+### For hosted CRUD requests below, change baseUrl to:
+### http://aas-ecosystem.localhost/designer-api/plugin-api/aas-twin-engine-ui
+
+### Database readiness
+GET {{baseUrl}}/healthz
+
+### OpenAPI (dotnet run / Development only)
+GET {{baseUrl}}/openapi/v1.json
+
+### Create: copy productId from the response into the variable above
+POST {{baseUrl}}/submodel-data/products
+Content-Type: application/json
+
+{
+  "name": "PluginBackendExample",
+  "dateOfManufacture": "2026-01-01",
+  "manufacturerName": "Example Manufacturer",
+  "manufacturerArticleNumber": "EXAMPLE-001",
+  "pcfCO2eq": 12.5,
+  "referenceImpactUnitForCalculation": "piece"
+}
+
+### Update: preserves product identifiers
+PUT {{baseUrl}}/submodel-data/products/{{productId}}
+Content-Type: application/json
+
+{
+  "id": "{{productId}}",
+  "dateOfManufacture": "2026-01-02",
+  "addressInformation": {
+    "street": "Example Street 1",
+    "zipcode": "10115",
+    "cityTown": "Berlin",
+    "nationalCode": "DE"
+  },
+  "serialNumber": "EXAMPLE-SERIAL-002",
+  "manufacturerProductType": "Example Type",
+  "manufacturerName": "Example Manufacturer",
+  "manufacturerArticleNumber": "EXAMPLE-001",
+  "pcfCO2eq": 18.5,
+  "referenceImpactUnitForCalculation": "piece",
+  "quantityOfMeasureForCalculation": "1",
+  "publicationDate": "2026-02-01",
+  "expirationDate": "2027-02-01",
+  "length": "10",
+  "width": "20",
+  "height": "30"
+}
+
+### Hard delete: only use the product created above
+DELETE {{baseUrl}}/submodel-data/products/{{productId}}
+
+### Reset: truncates ALL product data and re-inserts the demo seed data
+POST {{baseUrl}}/submodel-data/reset
+
+### Invalid create: 400, no database changes
+POST {{baseUrl}}/submodel-data/products
+Content-Type: application/json
+
+{
+  "name": "invalid name",
+  "pcfCO2eq": -1
+}
+
+### Missing update: 404 with otherwise valid input
+PUT {{baseUrl}}/submodel-data/products/PRODUCT-DOES-NOT-EXIST
+Content-Type: application/json
+
+{
+  "dateOfManufacture": "2026-01-02",
+  "addressInformation": {
+    "street": "Example Street 1",
+    "zipcode": "10115",
+    "cityTown": "Berlin",
+    "nationalCode": "DE"
+  },
+  "serialNumber": "EXAMPLE-SERIAL-002",
+  "manufacturerProductType": "Example Type",
+  "manufacturerName": "Example Manufacturer",
+  "manufacturerArticleNumber": "EXAMPLE-001",
+  "pcfCO2eq": 18.5,
+  "referenceImpactUnitForCalculation": "piece",
+  "quantityOfMeasureForCalculation": 1,
+  "publicationDate": "2026-02-01",
+  "expirationDate": "2027-02-01",
+  "length": 10,
+  "width": 20,
+  "height": 30
+}

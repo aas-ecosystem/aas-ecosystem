@@ -5,7 +5,10 @@ export interface FieldConfig {
   key: string;
   label: string;
   type?: TextFieldType;
+  suffix?: string;
 }
+
+export const SHELL_CREATE_PCF_UNIT = 'kg';
 
 export interface GroupConfig {
   key: string;
@@ -83,8 +86,7 @@ export const SHELL_CREATE_SECTIONS: SectionConfig[] = [
     key: 'carbonFootprint',
     title: 'Carbon Footprint',
     fields: [
-      { key: 'pcfCO2eq', label: 'PCF CO2eq', type: 'number' },
-      { key: 'referenceImpactUnitForCalculation', label: 'Reference Impact Unit for Calculation' },
+      { key: 'pcfCO2eq', label: 'PCF CO2eq', type: 'number', suffix: SHELL_CREATE_PCF_UNIT },
     ],
   },
   {

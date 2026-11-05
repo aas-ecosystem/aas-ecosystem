@@ -170,6 +170,7 @@
                 </qualifier>
               </qualifiers>
               <valueType>xs:string</valueType>
+              <value>M&amp;M Software</value>
             </property>
             <file>
               <idShort>CompanyLogo</idShort>
@@ -575,7 +576,7 @@
                       <value>
                         <langStringTextType>
                           <language>en</language>
-                          <text>Notes or explanations about the image provided</text>
+                          <text></text>
                         </langStringTextType>
                       </value>
                     </multiLanguageProperty>
@@ -1101,7 +1102,7 @@
                   <value>
                     <langStringTextType>
                       <language>en</language>
-                      <text>Name of product class in the used classification system</text>
+                      <text></text>
                     </langStringTextType>
                   </value>
                 </multiLanguageProperty>
@@ -1219,6 +1220,161 @@
                   <value>ZeroToMany</value>
                 </qualifier>
               </qualifiers>
+              <value>
+                <property>
+                  <category>PARAMETER</category>
+                  <idShort>Length</idShort>
+                  <displayName>
+                    <langStringNameType>
+                      <language>en</language>
+                      <text>Length</text>
+                    </langStringNameType>
+                    <langStringNameType>
+                      <language>de</language>
+                      <text>Länge</text>
+                    </langStringNameType>
+                  </displayName>
+                  <semanticId>
+                    <type>ExternalReference</type>
+                    <keys>
+                      <key>
+                        <type>GlobalReference</type>
+                        <value>0173-1#02-BAA018#008</value>
+                      </key>
+                    </keys>
+                  </semanticId>
+                  <supplementalSemanticIds>
+                    <reference>
+                      <type>ExternalReference</type>
+                      <keys>
+                        <key>
+                          <type>GlobalReference</type>
+                          <value>https://api.eclass-cdp.com/0173-1-02-BAA018-008</value>
+                        </key>
+                      </keys>
+                    </reference>
+                  </supplementalSemanticIds>
+                  <qualifiers>
+                    <qualifier>
+                      <semanticId>
+                        <type>ExternalReference</type>
+                        <keys>
+                          <key>
+                            <type>GlobalReference</type>
+                            <value>https://admin-shell.io/SubmodelTemplates/SMT/Cardinality/1/0</value>
+                          </key>
+                        </keys>
+                      </semanticId>
+                      <type>SMT/Cardinality</type>
+                      <valueType>xs:string</valueType>
+                      <value>ZeroToOne</value>
+                    </qualifier>
+                  </qualifiers>
+                  <valueType>xs:float</valueType>
+                </property>
+                <property>
+                  <category>PARAMETER</category>
+                  <idShort>Width</idShort>
+                  <displayName>
+                    <langStringNameType>
+                      <language>en</language>
+                      <text>Width</text>
+                    </langStringNameType>
+                    <langStringNameType>
+                      <language>de</language>
+                      <text>Breite</text>
+                    </langStringNameType>
+                  </displayName>
+                  <semanticId>
+                    <type>ExternalReference</type>
+                    <keys>
+                      <key>
+                        <type>GlobalReference</type>
+                        <value>0173-1#02-BAF016#007</value>
+                      </key>
+                    </keys>
+                  </semanticId>
+                  <supplementalSemanticIds>
+                    <reference>
+                      <type>ExternalReference</type>
+                      <keys>
+                        <key>
+                          <type>GlobalReference</type>
+                          <value>https://api.eclass-cdp.com/0173-1-02-BAF016-007</value>
+                        </key>
+                      </keys>
+                    </reference>
+                  </supplementalSemanticIds>
+                  <qualifiers>
+                    <qualifier>
+                      <semanticId>
+                        <type>ExternalReference</type>
+                        <keys>
+                          <key>
+                            <type>GlobalReference</type>
+                            <value>https://admin-shell.io/SubmodelTemplates/SMT/Cardinality/1/0</value>
+                          </key>
+                        </keys>
+                      </semanticId>
+                      <type>SMT/Cardinality</type>
+                      <valueType>xs:string</valueType>
+                      <value>ZeroToOne</value>
+                    </qualifier>
+                  </qualifiers>
+                  <valueType>xs:float</valueType>
+                </property>
+                <property>
+                  <category>PARAMETER</category>
+                  <idShort>Height</idShort>
+                  <displayName>
+                    <langStringNameType>
+                      <language>en</language>
+                      <text>Height</text>
+                    </langStringNameType>
+                    <langStringNameType>
+                      <language>de</language>
+                      <text>Höhe</text>
+                    </langStringNameType>
+                  </displayName>
+                  <semanticId>
+                    <type>ExternalReference</type>
+                    <keys>
+                      <key>
+                        <type>GlobalReference</type>
+                        <value>0173-1#02-BAA020#011</value>
+                      </key>
+                    </keys>
+                  </semanticId>
+                  <supplementalSemanticIds>
+                    <reference>
+                      <type>ExternalReference</type>
+                      <keys>
+                        <key>
+                          <type>GlobalReference</type>
+                          <value>https://api.eclass-cdp.com/0173-1-02-BAA020-011</value>
+                        </key>
+                      </keys>
+                    </reference>
+                  </supplementalSemanticIds>
+                  <qualifiers>
+                    <qualifier>
+                      <semanticId>
+                        <type>ExternalReference</type>
+                        <keys>
+                          <key>
+                            <type>GlobalReference</type>
+                            <value>https://admin-shell.io/SubmodelTemplates/SMT/Cardinality/1/0</value>
+                          </key>
+                        </keys>
+                      </semanticId>
+                      <type>SMT/Cardinality</type>
+                      <valueType>xs:string</valueType>
+                      <value>ZeroToOne</value>
+                    </qualifier>
+                  </qualifiers>
+                  <valueType>xs:float</valueType>
+                </property>
+              </value>
             </submodelElementCollection>
           </value>
         </submodelElementList>
@@ -1323,7 +1479,7 @@
               <value>
                 <langStringTextType>
                   <language>en</language>
-                  <text>Statement by the manufacturer in text form, e.g. scope of validity of the statements, scopes of application, conditions of operation.</text>
+                  <text></text>
                 </langStringTextType>
               </value>
             </multiLanguageProperty>

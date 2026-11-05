@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>aas-twin-engine-ui-backend</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AasSuitePluginAbstractions">
+      <HintPath>lib\AasSuitePluginAbstractions.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Tests\**" />
+    <Content Remove="Tests\**" />
+    <None Remove="Tests\**" />
+    <EmbeddedResource Include="Infrastructure\DataAccess\Queries\*.sql" />
+  </ItemGroup>
+</Project>

@@ -8,5 +8,9 @@
   "type": "GuiApp",
   "description": "AAS TwinEngine user interface.",
   "version": "0.0.0",
-  "author": "AAS TwinEngine"
+  "author": "AAS TwinEngine",
+  "backend": {
+    "assembly": "backend/AAS.TwinEngine.UI.Backend.dll",
+    "type": "AAS.TwinEngine.UI.Backend.TwinEngineBackendPlugin"
+  }
 }

@@ -20,6 +20,7 @@ export class TextFieldComponent {
   readonly control = input.required<FormControl<string>>();
   readonly type = input<TextFieldType>('text');
   readonly fullWidth = input(false);
+  readonly suffix = input('');
 
   protected readonly id = `text-field-${nextId++}`;
 }

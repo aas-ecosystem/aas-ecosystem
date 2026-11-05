@@ -9,5 +9,4 @@ import { ShellDescriptor } from '../../../core/models/shell.models';
 export class ShellTableComponent {
   readonly shells = input.required<ShellDescriptor[]>();
   readonly edit = output<ShellDescriptor>();
-  readonly delete = output<ShellDescriptor>();
 }
