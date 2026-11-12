@@ -59,7 +59,7 @@ INSERT INTO "ProductOrSectorSpecificCarbonFootprint" (
 SELECT asset."Id",'ISO 14067 (illustrative estimate)','GHG Protocol Product Standard',
        asset."ManufacturerProductDesignation_en" || ' manufacturing footprint estimate','Demo 1.0',
        'https://ghgprotocol.org/product-standard',
-       'https://example.invalid/carbon-footprints/' || asset."ProductId",
+       'https://example.com/carbon-footprints/' || asset."ProductId",
        '?productId=' || asset."ProductId" || '&scope=cradle-to-gate&unit=kgCO2e&status=illustrative'
 FROM "Asset" AS asset
 WHERE asset."ProductId" IN ('000-001','000-002');

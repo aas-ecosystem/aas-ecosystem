@@ -140,7 +140,7 @@ INSERT INTO "Email" (
     "ContactForMaintenanceAuthorizationId","EmailAddress","TypeOfEmailAddress",
     "PublicKey_en","PublicKey_de","TypeOfPublicKey_en","TypeOfPublicKey_de"
 )
-SELECT contact."Id",lower(instruction."MaintenanceID") || '@example.invalid','Business',
+SELECT contact."Id",lower(instruction."MaintenanceID") || '@example.com','Business',
        'Not configured for demo','Für Demo nicht konfiguriert','Not applicable','Nicht zutreffend'
 FROM "MaintenanceInstructionContactForMaintenanceAuthorization" relation
 JOIN "ContactForMaintenanceAuthorization" contact ON contact."Id" = relation."ContactForMaintenanceAuthorizationId"
@@ -174,7 +174,7 @@ INSERT INTO "MaintenanceTool" (
     "ToolDescription_en","ToolDescription_de","MaxQuantityOfTool"
 )
 SELECT 0,'TOOL-' || asset."ProductId",'DEMO-TORQUE-WRENCH-' || asset."ProductId",
-       'https://example.invalid/tools/' || asset."ProductId",
+       'https://example.com/tools/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' workshop torque wrench',
        asset."ManufacturerProductDesignation_de" || ' Werkstatt-Drehmomentschlüssel',
        asset."ManufacturerProductDesignation_en" || ' Demo Tool Supply',
@@ -195,7 +195,7 @@ INSERT INTO "MaintenanceConsumable" (
     "DisposalInstructionsForConsumable_en","DisposalInstructionsForConsumable_de","QuantityOfConsumable"
 )
 SELECT 0,'CONSUMABLE-' || asset."ProductId",'litre','DEMO-ENGINE-OIL-' || asset."ProductId",
-       'https://example.invalid/consumables/' || asset."ProductId",
+       'https://example.com/consumables/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' engine oil',
        asset."ManufacturerProductDesignation_de" || ' Motoröl',
        asset."ManufacturerProductDesignation_en" || ' Demo Oil Supply',
@@ -218,7 +218,7 @@ INSERT INTO "MaintenanceSparePart" (
     "DisposalInstructionsForSparePart_en","DisposalInstructionsForSparePart_de","QuantityOfSparePart"
 )
 SELECT 0,'SPARE-' || asset."ProductId",'DEMO-OIL-FILTER-' || asset."ProductId",
-       'https://example.invalid/spare-parts/' || asset."ProductId",
+       'https://example.com/spare-parts/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' oil filter',
        asset."ManufacturerProductDesignation_de" || ' Ölfilter',
        asset."ManufacturerProductDesignation_en" || ' Demo Parts Supply',

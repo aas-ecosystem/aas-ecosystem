@@ -65,7 +65,7 @@ INSERT INTO "Asset" (
     '000-001','Car 1','https://mm-software.com/ids/assets/000-001','https://mm-software.com/ids/aas/000-001',
     'Instance','PetrolPassengerCar','image/jpeg',
     'https://files.aas-demo.dev/Car1.jpeg',
-    FALSE,'https://example.invalid/products/000-001','Demo petrol car',
+    FALSE,'https://example.com/products/000-001','Demo petrol car',
     'DEMO-CAR-1','DEMO-CAR-1','DEMO-CAR-1-0001',2020,'2020-04-18',
     'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-01',
     '1 Demo Street','1 Demo Street','00000','00000','Demo Town','Demo Town','DE','DE',
@@ -84,7 +84,7 @@ INSERT INTO "Asset" (
     '000-002','Car 2','https://mm-software.com/ids/assets/000-002','https://mm-software.com/ids/aas/000-002',
     'Instance','PetrolPassengerCar','image/jpeg',
     'https://files.aas-demo.dev/Car2.jpeg',
-    FALSE,'https://example.invalid/products/000-002','Demo petrol car',
+    FALSE,'https://example.com/products/000-002','Demo petrol car',
     'DEMO-CAR-2','DEMO-CAR-2','DEMO-CAR-2-0002',2020,'2020-06-12',
     'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-02',
     '2 Demo Street','2 Demo Street','00000','00000','Demo Town','Demo Town','DE','DE',
@@ -171,7 +171,7 @@ INSERT INTO "ProductOrSectorSpecificCarbonFootprint" (
 SELECT asset."Id",'ISO 14067 (illustrative estimate)','GHG Protocol Product Standard',
        asset."ManufacturerProductDesignation_en" || ' manufacturing footprint estimate','Demo 1.0',
        'https://ghgprotocol.org/product-standard',
-       'https://example.invalid/carbon-footprints/' || asset."ProductId",
+       'https://example.com/carbon-footprints/' || asset."ProductId",
        '?productId=' || asset."ProductId" || '&scope=cradle-to-gate&unit=kgCO2e&status=illustrative'
 FROM "Asset" AS asset
 WHERE asset."ProductId" IN ('000-001','000-002');
@@ -319,7 +319,7 @@ INSERT INTO "Email" (
     "ContactForMaintenanceAuthorizationId","EmailAddress","TypeOfEmailAddress",
     "PublicKey_en","PublicKey_de","TypeOfPublicKey_en","TypeOfPublicKey_de"
 )
-SELECT contact."Id",lower(instruction."MaintenanceID") || '@example.invalid','Business',
+SELECT contact."Id",lower(instruction."MaintenanceID") || '@example.com','Business',
        'Not configured for demo','Für Demo nicht konfiguriert','Not applicable','Nicht zutreffend'
 FROM "MaintenanceInstructionContactForMaintenanceAuthorization" relation
 JOIN "ContactForMaintenanceAuthorization" contact ON contact."Id" = relation."ContactForMaintenanceAuthorizationId"
@@ -353,7 +353,7 @@ INSERT INTO "MaintenanceTool" (
     "ToolDescription_en","ToolDescription_de","MaxQuantityOfTool"
 )
 SELECT 0,'TOOL-' || asset."ProductId",'DEMO-TORQUE-WRENCH-' || asset."ProductId",
-       'https://example.invalid/tools/' || asset."ProductId",
+       'https://example.com/tools/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' workshop torque wrench',
        asset."ManufacturerProductDesignation_de" || ' Werkstatt-Drehmomentschlüssel',
        asset."ManufacturerProductDesignation_en" || ' Demo Tool Supply',
@@ -374,7 +374,7 @@ INSERT INTO "MaintenanceConsumable" (
     "DisposalInstructionsForConsumable_en","DisposalInstructionsForConsumable_de","QuantityOfConsumable"
 )
 SELECT 0,'CONSUMABLE-' || asset."ProductId",'litre','DEMO-ENGINE-OIL-' || asset."ProductId",
-       'https://example.invalid/consumables/' || asset."ProductId",
+       'https://example.com/consumables/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' engine oil',
        asset."ManufacturerProductDesignation_de" || ' Motoröl',
        asset."ManufacturerProductDesignation_en" || ' Demo Oil Supply',
@@ -397,7 +397,7 @@ INSERT INTO "MaintenanceSparePart" (
     "DisposalInstructionsForSparePart_en","DisposalInstructionsForSparePart_de","QuantityOfSparePart"
 )
 SELECT 0,'SPARE-' || asset."ProductId",'DEMO-OIL-FILTER-' || asset."ProductId",
-       'https://example.invalid/spare-parts/' || asset."ProductId",
+       'https://example.com/spare-parts/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' oil filter',
        asset."ManufacturerProductDesignation_de" || ' Ölfilter',
        asset."ManufacturerProductDesignation_en" || ' Demo Parts Supply',
