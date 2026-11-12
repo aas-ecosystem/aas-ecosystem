@@ -362,12 +362,6 @@
                   <value>One</value>
                 </qualifier>
               </qualifiers>
-              <value>
-                <langStringTextType>
-                  <language>en</language>
-                  <text>DE</text>
-                </langStringTextType>
-              </value>
             </multiLanguageProperty>
           </value>
         </submodelElementCollection>
@@ -512,7 +506,6 @@
             </qualifier>
           </qualifiers>
           <valueType>xs:string</valueType>
-          <value>FM-ABC-1234</value>
         </property>
         <property>
           <idShort>OrderCodeOfManufacturer</idShort>
@@ -638,7 +631,6 @@
             </qualifier>
           </qualifiers>
           <valueType>xs:string</valueType>
-          <value>12345678</value>
         </property>
         <property>
           <idShort>YearOfConstruction</idShort>
@@ -722,7 +714,6 @@
             </qualifier>
           </qualifiers>
           <valueType>xs:date</valueType>
-          <value>2022-01-01</value>
         </property>
         <property>
           <idShort>HardwareVersion</idShort>

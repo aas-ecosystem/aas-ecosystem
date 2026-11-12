@@ -62,18 +62,18 @@ INSERT INTO "Asset" (
     "QuantityOfMeasureForCalculation","PublicationDate","ExpirationDate","ExplanatoryStatement"
 ) VALUES
 (
-    '000-001','BMW_320i','https://mm-software.com/ids/assets/000-001','https://mm-software.com/ids/aas/000-001',
+    '000-001','Car 1','https://mm-software.com/ids/assets/000-001','https://mm-software.com/ids/aas/000-001',
     'Instance','PetrolPassengerCar','image/jpeg',
-    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=85',
-    FALSE,'https://www.bmw.com/','320i 2.0 Petrol (E90)',
-    'DEMO-BMW-320I-2010','BMW-320I-2010-DEMO','DEMO-BMW320I-2010-0001',2010,'2010-04-18',
-    'E90','demo-1.0','demo-1.0','DE','BMW-MUNICH-DEMO-01',
-    'Petuelring 130','Petuelring 130','80809','80809','Munich','Muenchen','DE','DE',
-    'BMW AG','BMW 320i','BMW 320i','BMW 3 Series','BMW 3er','3 Series','3er',
-    'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg','BMW-320I-E90',
-    'DEMO-BMW-320I-2010',
-    'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=85',
-    'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg',
+    'https://files.aas-demo.dev/Car1.jpeg',
+    FALSE,'https://example.invalid/products/000-001','Demo petrol car',
+    'DEMO-CAR-1','DEMO-CAR-1','DEMO-CAR-1-0001',2020,'2020-04-18',
+    'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-01',
+    '1 Demo Street','1 Demo Street','00000','00000','Demo Town','Demo Town','DE','DE',
+    'Demo Manufacturer','Car 1','Car 1','Car 1','Car 1','Demo Cars','Demo Cars',
+    NULL,'DEMO-CAR-1',
+    'DEMO-CAR-1',
+    'https://files.aas-demo.dev/Car1.jpeg',
+    NULL,
     'Illustrative demonstration record. Vehicle specifications are representative; serial numbers and carbon-footprint values are synthetic.',
     'Beispieldatensatz. Die Fahrzeugdaten sind repräsentativ; Seriennummern und CO2-Fussabdruckwerte sind synthetisch.',
     '2027-04-18','ISO 14067 (illustrative estimate)','Cradle-to-gate (A1-A3)',6100,'kg CO2e',1,
@@ -81,19 +81,19 @@ INSERT INTO "Asset" (
     'Illustrative manufacturing footprint estimate for one vehicle; not a verified manufacturer declaration.'
 ),
 (
-    '000-002','Toyota_Corolla_16','https://mm-software.com/ids/assets/000-002','https://mm-software.com/ids/aas/000-002',
+    '000-002','Car 2','https://mm-software.com/ids/assets/000-002','https://mm-software.com/ids/aas/000-002',
     'Instance','PetrolPassengerCar','image/jpeg',
-    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85',
-    FALSE,'https://www.toyota-europe.com/','Corolla 1.6 Petrol (E150)',
-    'DEMO-TOYOTA-COROLLA-16-2012','TOYOTA-COROLLA-2012-DEMO','DEMO-TOYOTA-2012-0002',2012,'2012-06-12',
-    'E150','demo-1.0','demo-1.0','JP','TOYOTA-TSUTSUMI-DEMO-02',
-    '1 Toyota-cho','1 Toyota-cho','471-8571','471-8571','Toyota City','Toyota City','JP','JP',
-    'Toyota Motor Corporation','Corolla 1.6','Corolla 1.6',
-    'Corolla Sedan','Corolla Limousine','Corolla','Corolla',
-    'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg','TOYOTA-COROLLA-16-E150',
-    'DEMO-TOYOTA-COROLLA-16-2012',
-    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85',
-    'https://upload.wikimedia.org/wikipedia/commons/9/9d/Toyota_carlogo.svg',
+    'https://files.aas-demo.dev/Car2.jpeg',
+    FALSE,'https://example.invalid/products/000-002','Demo petrol car',
+    'DEMO-CAR-2','DEMO-CAR-2','DEMO-CAR-2-0002',2020,'2020-06-12',
+    'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-02',
+    '2 Demo Street','2 Demo Street','00000','00000','Demo Town','Demo Town','DE','DE',
+    'Demo Manufacturer','Car 2','Car 2',
+    'Car 2','Car 2','Demo Cars','Demo Cars',
+    NULL,'DEMO-CAR-2',
+    'DEMO-CAR-2',
+    'https://files.aas-demo.dev/Car2.jpeg',
+    NULL,
     'Illustrative demonstration record. Vehicle specifications are representative; serial numbers and carbon-footprint values are synthetic.',
     'Beispieldatensatz. Die Fahrzeugdaten sind repräsentativ; Seriennummern und CO2-Fussabdruckwerte sind synthetisch.',
     '2027-06-12','ISO 14067 (illustrative estimate)','Cradle-to-gate (A1-A3)',5400,'kg CO2e',1,
@@ -102,12 +102,12 @@ INSERT INTO "Asset" (
 );
 
 INSERT INTO "SpecificAssetIds" ("ProductId","Name","Value") VALUES
-('000-001','DemoSerialNumber','DEMO-BMW320I-2010-0001'),
-('000-001','ModelYear','2010'),
-('000-001','Powertrain','2.0-litre petrol'),
-('000-002','DemoSerialNumber','DEMO-TOYOTA-2012-0002'),
-('000-002','ModelYear','2012'),
-('000-002','Powertrain','1.6-litre petrol');
+('000-001','DemoSerialNumber','DEMO-CAR-1-0001'),
+('000-001','ModelYear','2020'),
+('000-001','Powertrain','petrol'),
+('000-002','DemoSerialNumber','DEMO-CAR-2-0002'),
+('000-002','ModelYear','2020'),
+('000-002','Powertrain','petrol');
 
 -- ---------- seed/02_vehicle_technical_data.sql.inc ----------
 INSERT INTO "TechnicalPropertyArea" ("AssetId","Index","Length","Width","Height")
@@ -122,27 +122,23 @@ JOIN (VALUES
 INSERT INTO "Marking"
 ("Index","MarkingName","DesignationOfCertificateOrApproval","IssueDate","ExpiryDate","MarkingAdditionalText","MarkingFile")
 VALUES
-(0,'Type approval reference - BMW 320i','DEMO-TA-BMW-320I-2010','2010-04-18','2027-04-18',
- 'Synthetic BMW 320i demonstration reference; not an actual certificate.','https://www.bmw.com/'),
-(0,'Type approval reference - Toyota Corolla 1.6','DEMO-TA-TOYOTA-COROLLA-2012','2012-06-12','2027-06-12',
- 'Synthetic Toyota Corolla demonstration reference; not an actual certificate.','https://www.toyota-europe.com/');
+(0,'Demo reference - Car 1','DEMO-TA-CAR-1','2020-04-18','2027-04-18',
+ 'Synthetic Car 1 demonstration reference; not an actual certificate.','https://files.aas-demo.dev/sample_document.pdf'),
+(0,'Demo reference - Car 2','DEMO-TA-CAR-2','2020-06-12','2027-06-12',
+ 'Synthetic Car 2 demonstration reference; not an actual certificate.','https://files.aas-demo.dev/sample_document.pdf');
 
 INSERT INTO "AssetMarking" ("AssetId","MarkingId")
 SELECT asset."Id", marking."Id"
 FROM (VALUES
-    ('000-001','Type approval reference - BMW 320i'),
-    ('000-002','Type approval reference - Toyota Corolla 1.6')
+    ('000-001','Demo reference - Car 1'),
+    ('000-002','Demo reference - Car 2')
 ) AS relation("ProductId","MarkingName")
 JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
 JOIN "Marking" AS marking ON marking."MarkingName" = relation."MarkingName";
 
 INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de") VALUES
-(1,0,'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=85',
- 'Illustrative image for the BMW 320i record; not a verified photograph of this model or vehicle.',
- 'Beispielbild zum BMW-320i-Datensatz; kein verifiziertes Foto dieses Modells oder Fahrzeugs.'),
-(2,0,'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=85',
- 'Illustrative image for the Toyota Corolla record; not a verified photograph of this model or vehicle.',
- 'Beispielbild zum Toyota-Corolla-Datensatz; kein verifiziertes Foto dieses Modells oder Fahrzeugs.');
+(1,0,'https://files.aas-demo.dev/Car1.jpeg','Illustrative image for Car 1.','Beispielbild fuer Car 1.'),
+(2,0,'https://files.aas-demo.dev/Car2.jpeg','Illustrative image for Car 2.','Beispielbild fuer Car 2.');
 
 INSERT INTO "AssetProductImage" ("Id","AssetId","ProductImageId")
 SELECT relation."ImageId", asset."Id", relation."ImageId"
@@ -153,16 +149,16 @@ INSERT INTO "ProductClassifications" (
     "Index","ClassificationSystem","ClassificationSystemVersion","ClassificationSystemUrl",
     "ProductClassId","ProductClassCodedName","ProductClassName_en","ProductClassName_de"
 ) VALUES
-(0,'UNSPSC','26.0601','https://www.unspsc.org','25101500','BMW-320I-PETROL',
- 'Petrol passenger car - BMW 320i','Benzin-Personenwagen - BMW 320i'),
-(0,'UNSPSC','26.0601','https://www.unspsc.org','25101500','TOYOTA-COROLLA-16-PETROL',
- 'Petrol passenger car - Toyota Corolla 1.6','Benzin-Personenwagen - Toyota Corolla 1.6');
+(0,'UNSPSC','26.0601','https://www.unspsc.org','25101500','CAR-1-PETROL',
+ 'Petrol passenger car - Car 1','Benzin-Personenwagen - Car 1'),
+(0,'UNSPSC','26.0601','https://www.unspsc.org','25101500','CAR-2-PETROL',
+ 'Petrol passenger car - Car 2','Benzin-Personenwagen - Car 2');
 
 INSERT INTO "AssetProductClassifications" ("AssetId","ProductClassificationsId")
 SELECT asset."Id", classification."Id"
 FROM (VALUES
-    ('000-001','BMW-320I-PETROL'),
-    ('000-002','TOYOTA-COROLLA-16-PETROL')
+    ('000-001','CAR-1-PETROL'),
+    ('000-002','CAR-2-PETROL')
 ) AS relation("ProductId","ProductClassCodedName")
 JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
 JOIN "ProductClassifications" AS classification
@@ -190,58 +186,58 @@ INSERT INTO "MaintenanceInstructionsForSpecificInterval" (
     "NumberOfRequiredTechnicians","RequiredQualification_en","RequiredQualification_de",
     "ValueTotalEstimatedWorkingTime","UnitValueTotalEstimatedWorkingTime"
 ) VALUES
-(0,'BMW-320I-OIL','BMW 320i engine oil and filter service','BMW 320i Motoröl- und Filterservice',
- 'Illustrative BMW 320i service schedule','Beispiel-Wartungsplan BMW 320i',
- 'Example interval only; use the vehicle-specific BMW service schedule',
- 'Nur Beispielintervall; fahrzeugspezifischen BMW-Wartungsplan verwenden',
- 'Workshop demonstration only; follow the official BMW service and safety instructions',
- 'Nur Werkstattdemonstration; offizielle BMW-Service- und Sicherheitshinweise beachten',
- 15000,'km','https://www.bmw.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(1,'BMW-320I-BRAKES','BMW 320i brake inspection','BMW 320i Bremsenprüfung',
- 'Illustrative BMW 320i inspection schedule','Beispiel-Prüfplan BMW 320i',
- 'Example interval only; use the vehicle-specific BMW inspection requirements',
- 'Nur Beispielintervall; fahrzeugspezifische BMW-Prüfvorgaben verwenden',
- 'Workshop demonstration only; follow the official BMW brake inspection safety instructions',
- 'Nur Werkstattdemonstration; offizielle BMW-Sicherheitshinweise zur Bremsenprüfung beachten',
- 12,'months','https://www.bmw.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(0,'COROLLA-16-OIL','Toyota Corolla engine oil and filter service','Toyota Corolla Motoröl- und Filterservice',
- 'Illustrative Toyota Corolla service schedule','Beispiel-Wartungsplan Toyota Corolla',
- 'Example interval only; use the vehicle-specific Toyota service schedule',
- 'Nur Beispielintervall; fahrzeugspezifischen Toyota-Wartungsplan verwenden',
- 'Workshop demonstration only; follow the official Toyota service and safety instructions',
- 'Nur Werkstattdemonstration; offizielle Toyota-Service- und Sicherheitshinweise beachten',
- 10000,'km','https://www.toyota-europe.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(1,'COROLLA-16-BRAKES','Toyota Corolla brake inspection','Toyota Corolla Bremsenprüfung',
- 'Illustrative Toyota Corolla inspection schedule','Beispiel-Prüfplan Toyota Corolla',
- 'Example interval only; use the vehicle-specific Toyota inspection requirements',
- 'Nur Beispielintervall; fahrzeugspezifische Toyota-Prüfvorgaben verwenden',
- 'Workshop demonstration only; follow the official Toyota brake inspection safety instructions',
- 'Nur Werkstattdemonstration; offizielle Toyota-Sicherheitshinweise zur Bremsenprüfung beachten',
- 12,'months','https://www.toyota-europe.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour');
+(0,'CAR-1-OIL','Car 1 engine oil and filter service','Car 1 Motoröl- und Filterservice',
+ 'Illustrative Car 1 service schedule','Beispiel-Wartungsplan Car 1',
+ 'Example interval only; use the product-specific service schedule',
+ 'Nur Beispielintervall; produktspezifischen Wartungsplan verwenden',
+ 'Workshop demonstration only; follow the service and safety instructions',
+ 'Nur Werkstattdemonstration; Service- und Sicherheitshinweise beachten',
+ 15000,'km','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
+(1,'CAR-1-BRAKES','Car 1 brake inspection','Car 1 Bremsenprüfung',
+ 'Illustrative Car 1 inspection schedule','Beispiel-Prüfplan Car 1',
+ 'Example interval only; use the product-specific inspection requirements',
+ 'Nur Beispielintervall; produktspezifische Prüfvorgaben verwenden',
+ 'Workshop demonstration only; follow the brake inspection safety instructions',
+ 'Nur Werkstattdemonstration; Sicherheitshinweise zur Bremsenprüfung beachten',
+ 12,'months','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
+(0,'CAR-2-OIL','Car 2 engine oil and filter service','Car 2 Motoröl- und Filterservice',
+ 'Illustrative Car 2 service schedule','Beispiel-Wartungsplan Car 2',
+ 'Example interval only; use the product-specific service schedule',
+ 'Nur Beispielintervall; produktspezifischen Wartungsplan verwenden',
+ 'Workshop demonstration only; follow the service and safety instructions',
+ 'Nur Werkstattdemonstration; Service- und Sicherheitshinweise beachten',
+ 10000,'km','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
+(1,'CAR-2-BRAKES','Car 2 brake inspection','Car 2 Bremsenprüfung',
+ 'Illustrative Car 2 inspection schedule','Beispiel-Prüfplan Car 2',
+ 'Example interval only; use the product-specific inspection requirements',
+ 'Nur Beispielintervall; produktspezifische Prüfvorgaben verwenden',
+ 'Workshop demonstration only; follow the brake inspection safety instructions',
+ 'Nur Werkstattdemonstration; Sicherheitshinweise zur Bremsenprüfung beachten',
+ 12,'months','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour');
 
 INSERT INTO "AssetMaintenanceInstruction" ("AssetId","MaintenanceInstructionId")
 SELECT asset."Id", instruction."Id"
 FROM (VALUES
-    ('000-001','BMW-320I-OIL'),('000-001','BMW-320I-BRAKES'),
-    ('000-002','COROLLA-16-OIL'),('000-002','COROLLA-16-BRAKES')
+    ('000-001','CAR-1-OIL'),('000-001','CAR-1-BRAKES'),
+    ('000-002','CAR-2-OIL'),('000-002','CAR-2-BRAKES')
 ) AS relation("ProductId","MaintenanceID")
 JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
 JOIN "MaintenanceInstructionsForSpecificInterval" AS instruction
     ON instruction."MaintenanceID" = relation."MaintenanceID";
 
 INSERT INTO "Alarm" ("Index","AlarmName_en","AlarmName_de","WarningLimitRelativeValue","WarningLimitSeverity") VALUES
-(0,'BMW 320i oil service due','BMW 320i Ölservice fällig',100,'Warning'),
-(0,'BMW 320i brake inspection due','BMW 320i Bremsenprüfung fällig',100,'Warning'),
-(0,'Toyota Corolla oil service due','Toyota Corolla Ölservice fällig',100,'Warning'),
-(0,'Toyota Corolla brake inspection due','Toyota Corolla Bremsenprüfung fällig',100,'Warning');
+(0,'Car 1 oil service due','Car 1 Ölservice fällig',100,'Warning'),
+(0,'Car 1 brake inspection due','Car 1 Bremsenprüfung fällig',100,'Warning'),
+(0,'Car 2 oil service due','Car 2 Ölservice fällig',100,'Warning'),
+(0,'Car 2 brake inspection due','Car 2 Bremsenprüfung fällig',100,'Warning');
 
 INSERT INTO "MaintenanceInstructionAlarm" ("MaintenanceInstructionId","AlarmId")
 SELECT instruction."Id", alarm."Id"
 FROM (VALUES
-    ('BMW-320I-OIL','BMW 320i oil service due'),
-    ('BMW-320I-BRAKES','BMW 320i brake inspection due'),
-    ('COROLLA-16-OIL','Toyota Corolla oil service due'),
-    ('COROLLA-16-BRAKES','Toyota Corolla brake inspection due')
+    ('CAR-1-OIL','Car 1 oil service due'),
+    ('CAR-1-BRAKES','Car 1 brake inspection due'),
+    ('CAR-2-OIL','Car 2 oil service due'),
+    ('CAR-2-BRAKES','Car 2 brake inspection due')
 ) AS relation("MaintenanceID","AlarmName")
 JOIN "MaintenanceInstructionsForSpecificInterval" AS instruction
     ON instruction."MaintenanceID" = relation."MaintenanceID"
@@ -281,7 +277,7 @@ CROSS JOIN (VALUES
      'Document completed work and the next service due.',
      'Abgeschlossene Arbeiten und nächsten Wartungstermin dokumentieren.',10)
 ) AS step("Index","EndOfMaintenance","Name_en","Name_de","Instruction_en","Instruction_de","Duration")
-WHERE instruction."MaintenanceID" IN ('BMW-320I-OIL','BMW-320I-BRAKES','COROLLA-16-OIL','COROLLA-16-BRAKES');
+WHERE instruction."MaintenanceID" IN ('CAR-1-OIL','CAR-1-BRAKES','CAR-2-OIL','CAR-2-BRAKES');
 
 -- Each instruction owns a fictional contact and separate communication records.
 INSERT INTO "ContactForMaintenanceAuthorization" (
@@ -302,10 +298,10 @@ SELECT 0, asset."ManufacturerProductDesignation_en" || ' Demo Workshop',
        'Fictional authorization contact for ' || instruction."MaintenanceID",
        'Fiktiver Freigabekontakt für ' || instruction."MaintenanceID",'Maintenance authorization'
 FROM (VALUES
-    ('BMW-320I-OIL','Alex','Miller'),
-    ('BMW-320I-BRAKES','Sam','Taylor'),
-    ('COROLLA-16-OIL','Robin','Clark'),
-    ('COROLLA-16-BRAKES','Jamie','Morgan')
+    ('CAR-1-OIL','Alex','Miller'),
+    ('CAR-1-BRAKES','Sam','Taylor'),
+    ('CAR-2-OIL','Robin','Clark'),
+    ('CAR-2-BRAKES','Jamie','Morgan')
 ) AS contact("MaintenanceID","FirstName","LastName")
 JOIN "MaintenanceInstructionsForSpecificInterval" instruction
     ON instruction."MaintenanceID" = contact."MaintenanceID"
@@ -422,17 +418,17 @@ SELECT instruction."Id", step."Id"
 FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
 JOIN "MaintenanceStep" AS step
     ON step."MaintenanceStepID" = instruction."MaintenanceID" || '-STEP-' || step."Index"
-WHERE instruction."MaintenanceID" IN ('BMW-320I-OIL','BMW-320I-BRAKES','COROLLA-16-OIL','COROLLA-16-BRAKES');
+WHERE instruction."MaintenanceID" IN ('CAR-1-OIL','CAR-1-BRAKES','CAR-2-OIL','CAR-2-BRAKES');
 
 -- ---------- seed/04_vehicle_documentation.sql.inc ----------
 INSERT INTO "Document" ("Index") VALUES
 (0),(1),(0),(1);
 
 INSERT INTO "DocumentId" ("Index","DocumentDomainId","DocumentIdentifier","DocumentIsPrimary") VALUES
-(0,'4bbdba12-9352-4fac-91ae-000000000001','BMW-320I-OWNER-GUIDE-DEMO',TRUE),
-(0,'4bbdba12-9352-4fac-91ae-000000000002','BMW-320I-TECH-SHEET-DEMO',TRUE),
-(0,'4bbdba12-9352-4fac-91ae-000000000003','TOYOTA-COROLLA-16-OWNER-GUIDE-DEMO',TRUE),
-(0,'4bbdba12-9352-4fac-91ae-000000000004','TOYOTA-COROLLA-16-TECH-SHEET-DEMO',TRUE);
+(0,'4bbdba12-9352-4fac-91ae-000000000001','CAR-1-OWNER-GUIDE-DEMO',TRUE),
+(0,'4bbdba12-9352-4fac-91ae-000000000002','CAR-1-TECH-SHEET-DEMO',TRUE),
+(0,'4bbdba12-9352-4fac-91ae-000000000003','CAR-2-OWNER-GUIDE-DEMO',TRUE),
+(0,'4bbdba12-9352-4fac-91ae-000000000004','CAR-2-TECH-SHEET-DEMO',TRUE);
 
 INSERT INTO "AssetDocument" ("AssetId","DocumentId")
 SELECT asset."Id", relation."DocumentId"
@@ -445,10 +441,10 @@ INSERT INTO "DocumentDocumentId" ("DocumentId","DocumentIdentifierId") VALUES
 (1,1),(2,2),(3,3),(4,4);
 
 INSERT INTO "DocumentClassification" ("Index","ClassId","ClassificationSystem","ClassName_en","ClassName_de") VALUES
-(0,'VEHICLE-OWNER-MANUAL','DEMO','BMW 320i owner information','BMW 320i Besitzerinformationen'),
-(0,'VEHICLE-TECHNICAL-SHEET','DEMO','BMW 320i technical data sheet','BMW 320i technisches Datenblatt'),
-(0,'VEHICLE-OWNER-MANUAL','DEMO','Toyota Corolla owner information','Toyota Corolla Besitzerinformationen'),
-(0,'VEHICLE-TECHNICAL-SHEET','DEMO','Toyota Corolla technical data sheet','Toyota Corolla technisches Datenblatt');
+(0,'VEHICLE-OWNER-MANUAL','DEMO','Car 1 owner information','Car 1 Besitzerinformationen'),
+(0,'VEHICLE-TECHNICAL-SHEET','DEMO','Car 1 technical data sheet','Car 1 technisches Datenblatt'),
+(0,'VEHICLE-OWNER-MANUAL','DEMO','Car 2 owner information','Car 2 Besitzerinformationen'),
+(0,'VEHICLE-TECHNICAL-SHEET','DEMO','Car 2 technical data sheet','Car 2 technisches Datenblatt');
 
 INSERT INTO "DocumentDocumentClassification" ("DocumentId","DocumentClassificationId") VALUES
 (1,1),(2,2),(3,3),(4,4);
@@ -458,32 +454,32 @@ INSERT INTO "DocumentVersion" (
     "OrganizationOfficialName","Title_en","Title_de","Subtitle_en","Subtitle_de","Description_en","Description_de",
     "KeyWords_en","KeyWords_de","PreviewFile"
 ) VALUES
-(0,'https://www.bmw.com/','Demo 1.0','2026-10-22','Illustrative',
- 'BMW','BMW AG','BMW 320i - owner guide reference (demo)','BMW 320i - Referenz zur Betriebsanleitung (Demo)',
- '2010 petrol sedan','Benzinlimousine Baujahr 2010',
- 'Demonstration owner information for the BMW 320i; not an official BMW publication.',
- 'Beispiel-Besitzerinformationen zum BMW 320i; keine offizielle BMW-Veröffentlichung.',
- 'BMW, 320i, petrol, owner guide, demo','BMW, 320i, Benzin, Betriebsanleitung, Demo','https://www.bmw.com/'),
-(0,'https://www.bmw.com/','Demo 1.0','2026-10-22','Illustrative',
- 'BMW','BMW AG','BMW 320i - technical data (demo)','BMW 320i - technische Daten (Demo)',
- 'E90 2.0-litre petrol engine','E90 2,0-Liter-Benzinmotor',
- 'Representative BMW 320i specifications for demonstration; verify against the vehicle-specific documentation.',
- 'Beispiel-Fahrzeugdaten zum BMW 320i; anhand der fahrzeugspezifischen Dokumentation prüfen.',
- 'BMW, 320i, dimensions, petrol engine, demo','BMW, 320i, Abmessungen, Benzinmotor, Demo','https://www.bmw.com/'),
-(0,'https://www.toyota-europe.com/','Demo 1.0','2026-10-22','Illustrative',
- 'Toyota','Toyota Motor Corporation','Toyota Corolla 1.6 - owner guide reference (demo)',
- 'Toyota Corolla 1.6 - Referenz zur Betriebsanleitung (Demo)',
- '2012 petrol sedan','Benzinlimousine Baujahr 2012',
- 'Demonstration owner information for the Toyota Corolla 1.6; not an official Toyota publication.',
- 'Beispiel-Besitzerinformationen zum Toyota Corolla 1.6; keine offizielle Toyota-Veröffentlichung.',
- 'Toyota, Corolla, petrol, owner guide, demo','Toyota, Corolla, Benzin, Betriebsanleitung, Demo','https://www.toyota-europe.com/'),
-(0,'https://www.toyota-europe.com/','Demo 1.0','2026-10-22','Illustrative',
- 'Toyota','Toyota Motor Corporation','Toyota Corolla 1.6 - technical data (demo)',
- 'Toyota Corolla 1.6 - technische Daten (Demo)',
- 'E150 1.6-litre petrol engine','E150 1,6-Liter-Benzinmotor',
- 'Representative Toyota Corolla 1.6 specifications for demonstration; verify against the vehicle-specific documentation.',
- 'Beispiel-Fahrzeugdaten zum Toyota Corolla 1.6; anhand der fahrzeugspezifischen Dokumentation prüfen.',
- 'Toyota, Corolla, dimensions, petrol engine, demo','Toyota, Corolla, Abmessungen, Benzinmotor, Demo','https://www.toyota-europe.com/');
+(0,'https://files.aas-demo.dev/sample_document.pdf','Demo 1.0','2026-10-22','Illustrative',
+ 'Demo','Demo Organization','Car 1 - owner guide reference (demo)','Car 1 - Referenz zur Betriebsanleitung (Demo)',
+ 'Demo petrol car','Demo-Benzinfahrzeug',
+ 'Demonstration owner information for Car 1.',
+ 'Beispiel-Besitzerinformationen fuer Car 1.',
+ 'Car 1, owner guide, demo','Car 1, Betriebsanleitung, Demo','https://files.aas-demo.dev/sample_document.pdf'),
+(0,'https://files.aas-demo.dev/sample_document.pdf','Demo 1.0','2026-10-22','Illustrative',
+ 'Demo','Demo Organization','Car 1 - technical data (demo)','Car 1 - technische Daten (Demo)',
+ 'Demo petrol vehicle','Demo-Benzinfahrzeug',
+ 'Representative Car 1 specifications for demonstration.',
+ 'Beispiel-Fahrzeugdaten fuer Car 1.',
+ 'Car 1, dimensions, demo','Car 1, Abmessungen, Demo','https://files.aas-demo.dev/sample_document.pdf'),
+(0,'https://files.aas-demo.dev/sample_document.pdf','Demo 1.0','2026-10-22','Illustrative',
+ 'Demo','Demo Organization','Car 2 - owner guide reference (demo)',
+ 'Car 2 - Referenz zur Betriebsanleitung (Demo)',
+ 'Demo petrol car','Demo-Benzinfahrzeug',
+ 'Demonstration owner information for Car 2.',
+ 'Beispiel-Besitzerinformationen fuer Car 2.',
+ 'Car 2, owner guide, demo','Car 2, Betriebsanleitung, Demo','https://files.aas-demo.dev/sample_document.pdf'),
+(0,'https://files.aas-demo.dev/sample_document.pdf','Demo 1.0','2026-10-22','Illustrative',
+ 'Demo','Demo Organization','Car 2 - technical data (demo)',
+ 'Car 2 - technische Daten (Demo)',
+ 'Demo petrol vehicle','Demo-Benzinfahrzeug',
+ 'Representative Car 2 specifications for demonstration.',
+ 'Beispiel-Fahrzeugdaten fuer Car 2.',
+ 'Car 2, dimensions, demo','Car 2, Abmessungen, Demo','https://files.aas-demo.dev/sample_document.pdf');
 
 -- Language codes may repeat, but every version owns separate language records.
 INSERT INTO "Languages" ("Index","Language") VALUES

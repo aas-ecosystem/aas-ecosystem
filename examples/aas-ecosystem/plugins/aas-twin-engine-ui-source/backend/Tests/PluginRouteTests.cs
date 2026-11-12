@@ -29,9 +29,12 @@ public sealed class PluginRouteTests
         using var client = factory.CreateClient();
         using var response = await client.PostAsJsonAsync($"{BaseRoute}/submodel-data/products", new
         {
-            name = "TestProduct", dateOfManufacture = "2026-01-01",
-            manufacturerName = "Manufacturer", manufacturerArticleNumber = "ARTICLE-1",
-            pcfCO2eq = 12.5, referenceImpactUnitForCalculation = "piece"
+            name = "TestProduct",
+            dateOfManufacture = "2026-01-01",
+            manufacturerName = "Manufacturer",
+            manufacturerArticleNumber = "ARTICLE-1",
+            pcfCO2eq = 12.5,
+            referenceImpactUnitForCalculation = "piece"
         });
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Equal($"{BaseRoute}/submodel-data/products/000-001", response.Headers.Location?.OriginalString);
@@ -45,12 +48,21 @@ public sealed class PluginRouteTests
         using var client = factory.CreateClient();
         using var response = await client.PutAsJsonAsync($"{BaseRoute}/submodel-data/products/000-001", new
         {
-            id = "000-001", dateOfManufacture = "2026-01-01",
+            id = "000-001",
+            dateOfManufacture = "2026-01-01",
             addressInformation = new { street = "Street", zipcode = "10115", cityTown = "Berlin", nationalCode = "DE" },
-            serialNumber = "SERIAL", manufacturerProductType = "Type", manufacturerName = "Manufacturer",
-            manufacturerArticleNumber = "ARTICLE", pcfCO2eq = 12.5, referenceImpactUnitForCalculation = "piece",
-            quantityOfMeasureForCalculation = "1", publicationDate = "2026-01-01",
-            expirationDate = "2027-01-01", length = "10", width = "20", height = "30"
+            serialNumber = "SERIAL",
+            manufacturerProductType = "Type",
+            manufacturerName = "Manufacturer",
+            manufacturerArticleNumber = "ARTICLE",
+            pcfCO2eq = 12.5,
+            referenceImpactUnitForCalculation = "piece",
+            quantityOfMeasureForCalculation = "1",
+            publicationDate = "2026-01-01",
+            expirationDate = "2027-01-01",
+            length = "10",
+            width = "20",
+            height = "30"
         });
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(30m, factory.Provider.Updated?.Height);
@@ -76,7 +88,7 @@ public sealed class PluginRouteTests
         using var response = await client.PostAsync($"{BaseRoute}/submodel-data/reset", content: null);
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Contains("RESTART IDENTITY CASCADE", factory.Provider.ResetSql);
-        Assert.Contains("'000-001','BMW_320i'", factory.Provider.ResetSql);
+        Assert.Contains("'000-001','Car 1'", factory.Provider.ResetSql);
         Assert.Contains("INSERT INTO \"DocumentDocumentVersion\"", factory.Provider.ResetSql);
     }
 
