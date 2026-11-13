@@ -7,58 +7,58 @@ INSERT INTO "MaintenanceInstructionsForSpecificInterval" (
     "NumberOfRequiredTechnicians","RequiredQualification_en","RequiredQualification_de",
     "ValueTotalEstimatedWorkingTime","UnitValueTotalEstimatedWorkingTime"
 ) VALUES
-(0,'BMW-320I-OIL','BMW 320i engine oil and filter service','BMW 320i Motoröl- und Filterservice',
- 'Illustrative BMW 320i service schedule','Beispiel-Wartungsplan BMW 320i',
- 'Example interval only; use the vehicle-specific BMW service schedule',
- 'Nur Beispielintervall; fahrzeugspezifischen BMW-Wartungsplan verwenden',
- 'Workshop demonstration only; follow the official BMW service and safety instructions',
- 'Nur Werkstattdemonstration; offizielle BMW-Service- und Sicherheitshinweise beachten',
- 15000,'km','https://www.bmw.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(1,'BMW-320I-BRAKES','BMW 320i brake inspection','BMW 320i Bremsenprüfung',
- 'Illustrative BMW 320i inspection schedule','Beispiel-Prüfplan BMW 320i',
- 'Example interval only; use the vehicle-specific BMW inspection requirements',
- 'Nur Beispielintervall; fahrzeugspezifische BMW-Prüfvorgaben verwenden',
- 'Workshop demonstration only; follow the official BMW brake inspection safety instructions',
- 'Nur Werkstattdemonstration; offizielle BMW-Sicherheitshinweise zur Bremsenprüfung beachten',
- 12,'months','https://www.bmw.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(0,'COROLLA-16-OIL','Toyota Corolla engine oil and filter service','Toyota Corolla Motoröl- und Filterservice',
- 'Illustrative Toyota Corolla service schedule','Beispiel-Wartungsplan Toyota Corolla',
- 'Example interval only; use the vehicle-specific Toyota service schedule',
- 'Nur Beispielintervall; fahrzeugspezifischen Toyota-Wartungsplan verwenden',
- 'Workshop demonstration only; follow the official Toyota service and safety instructions',
- 'Nur Werkstattdemonstration; offizielle Toyota-Service- und Sicherheitshinweise beachten',
- 10000,'km','https://www.toyota-europe.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(1,'COROLLA-16-BRAKES','Toyota Corolla brake inspection','Toyota Corolla Bremsenprüfung',
- 'Illustrative Toyota Corolla inspection schedule','Beispiel-Prüfplan Toyota Corolla',
- 'Example interval only; use the vehicle-specific Toyota inspection requirements',
- 'Nur Beispielintervall; fahrzeugspezifische Toyota-Prüfvorgaben verwenden',
- 'Workshop demonstration only; follow the official Toyota brake inspection safety instructions',
- 'Nur Werkstattdemonstration; offizielle Toyota-Sicherheitshinweise zur Bremsenprüfung beachten',
- 12,'months','https://www.toyota-europe.com/',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour');
+(0,'CAR-1-OIL','Car 1 engine oil and filter service','Car 1 Motoröl- und Filterservice',
+ 'Illustrative Car 1 service schedule','Beispiel-Wartungsplan Car 1',
+ 'Example interval only; use the product-specific service schedule',
+ 'Nur Beispielintervall; produktspezifischen Wartungsplan verwenden',
+ 'Workshop demonstration only; follow the service and safety instructions',
+ 'Nur Werkstattdemonstration; Service- und Sicherheitshinweise beachten',
+ 15000,'km','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
+(1,'CAR-1-BRAKES','Car 1 brake inspection','Car 1 Bremsenprüfung',
+ 'Illustrative Car 1 inspection schedule','Beispiel-Prüfplan Car 1',
+ 'Example interval only; use the product-specific inspection requirements',
+ 'Nur Beispielintervall; produktspezifische Prüfvorgaben verwenden',
+ 'Workshop demonstration only; follow the brake inspection safety instructions',
+ 'Nur Werkstattdemonstration; Sicherheitshinweise zur Bremsenprüfung beachten',
+ 12,'months','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
+(0,'CAR-2-OIL','Car 2 engine oil and filter service','Car 2 Motoröl- und Filterservice',
+ 'Illustrative Car 2 service schedule','Beispiel-Wartungsplan Car 2',
+ 'Example interval only; use the product-specific service schedule',
+ 'Nur Beispielintervall; produktspezifischen Wartungsplan verwenden',
+ 'Workshop demonstration only; follow the service and safety instructions',
+ 'Nur Werkstattdemonstration; Service- und Sicherheitshinweise beachten',
+ 10000,'km','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
+(1,'CAR-2-BRAKES','Car 2 brake inspection','Car 2 Bremsenprüfung',
+ 'Illustrative Car 2 inspection schedule','Beispiel-Prüfplan Car 2',
+ 'Example interval only; use the product-specific inspection requirements',
+ 'Nur Beispielintervall; produktspezifische Prüfvorgaben verwenden',
+ 'Workshop demonstration only; follow the brake inspection safety instructions',
+ 'Nur Werkstattdemonstration; Sicherheitshinweise zur Bremsenprüfung beachten',
+ 12,'months','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour');
 
 INSERT INTO "AssetMaintenanceInstruction" ("AssetId","MaintenanceInstructionId")
 SELECT asset."Id", instruction."Id"
 FROM (VALUES
-    ('000-001','BMW-320I-OIL'),('000-001','BMW-320I-BRAKES'),
-    ('000-002','COROLLA-16-OIL'),('000-002','COROLLA-16-BRAKES')
+    ('000-001','CAR-1-OIL'),('000-001','CAR-1-BRAKES'),
+    ('000-002','CAR-2-OIL'),('000-002','CAR-2-BRAKES')
 ) AS relation("ProductId","MaintenanceID")
 JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
 JOIN "MaintenanceInstructionsForSpecificInterval" AS instruction
     ON instruction."MaintenanceID" = relation."MaintenanceID";
 
 INSERT INTO "Alarm" ("Index","AlarmName_en","AlarmName_de","WarningLimitRelativeValue","WarningLimitSeverity") VALUES
-(0,'BMW 320i oil service due','BMW 320i Ölservice fällig',100,'Warning'),
-(0,'BMW 320i brake inspection due','BMW 320i Bremsenprüfung fällig',100,'Warning'),
-(0,'Toyota Corolla oil service due','Toyota Corolla Ölservice fällig',100,'Warning'),
-(0,'Toyota Corolla brake inspection due','Toyota Corolla Bremsenprüfung fällig',100,'Warning');
+(0,'Car 1 oil service due','Car 1 Ölservice fällig',100,'Warning'),
+(0,'Car 1 brake inspection due','Car 1 Bremsenprüfung fällig',100,'Warning'),
+(0,'Car 2 oil service due','Car 2 Ölservice fällig',100,'Warning'),
+(0,'Car 2 brake inspection due','Car 2 Bremsenprüfung fällig',100,'Warning');
 
 INSERT INTO "MaintenanceInstructionAlarm" ("MaintenanceInstructionId","AlarmId")
 SELECT instruction."Id", alarm."Id"
 FROM (VALUES
-    ('BMW-320I-OIL','BMW 320i oil service due'),
-    ('BMW-320I-BRAKES','BMW 320i brake inspection due'),
-    ('COROLLA-16-OIL','Toyota Corolla oil service due'),
-    ('COROLLA-16-BRAKES','Toyota Corolla brake inspection due')
+    ('CAR-1-OIL','Car 1 oil service due'),
+    ('CAR-1-BRAKES','Car 1 brake inspection due'),
+    ('CAR-2-OIL','Car 2 oil service due'),
+    ('CAR-2-BRAKES','Car 2 brake inspection due')
 ) AS relation("MaintenanceID","AlarmName")
 JOIN "MaintenanceInstructionsForSpecificInterval" AS instruction
     ON instruction."MaintenanceID" = relation."MaintenanceID"
@@ -98,7 +98,7 @@ CROSS JOIN (VALUES
      'Document completed work and the next service due.',
      'Abgeschlossene Arbeiten und nächsten Wartungstermin dokumentieren.',10)
 ) AS step("Index","EndOfMaintenance","Name_en","Name_de","Instruction_en","Instruction_de","Duration")
-WHERE instruction."MaintenanceID" IN ('BMW-320I-OIL','BMW-320I-BRAKES','COROLLA-16-OIL','COROLLA-16-BRAKES');
+WHERE instruction."MaintenanceID" IN ('CAR-1-OIL','CAR-1-BRAKES','CAR-2-OIL','CAR-2-BRAKES');
 
 -- Each instruction owns a fictional contact and separate communication records.
 INSERT INTO "ContactForMaintenanceAuthorization" (
@@ -119,8 +119,8 @@ SELECT 0, asset."ManufacturerProductDesignation_en" || ' Demo Workshop',
        'Fictional authorization contact for ' || instruction."MaintenanceID",
        'Fiktiver Freigabekontakt für ' || instruction."MaintenanceID",'Maintenance authorization'
 FROM (VALUES
-    ('BMW-320I-OIL','Alex','Miller'),
-    ('BMW-320I-BRAKES','Sam','Taylor'),
+    ('CAR-1-OIL','Alex','Miller'),
+    ('CAR-1-BRAKES','Sam','Taylor'),
     ('COROLLA-16-OIL','Robin','Clark'),
     ('COROLLA-16-BRAKES','Jamie','Morgan')
 ) AS contact("MaintenanceID","FirstName","LastName")
@@ -140,7 +140,7 @@ INSERT INTO "Email" (
     "ContactForMaintenanceAuthorizationId","EmailAddress","TypeOfEmailAddress",
     "PublicKey_en","PublicKey_de","TypeOfPublicKey_en","TypeOfPublicKey_de"
 )
-SELECT contact."Id",lower(instruction."MaintenanceID") || '@example.invalid','Business',
+SELECT contact."Id",lower(instruction."MaintenanceID") || '@example.com','Business',
        'Not configured for demo','Für Demo nicht konfiguriert','Not applicable','Nicht zutreffend'
 FROM "MaintenanceInstructionContactForMaintenanceAuthorization" relation
 JOIN "ContactForMaintenanceAuthorization" contact ON contact."Id" = relation."ContactForMaintenanceAuthorizationId"
@@ -174,7 +174,7 @@ INSERT INTO "MaintenanceTool" (
     "ToolDescription_en","ToolDescription_de","MaxQuantityOfTool"
 )
 SELECT 0,'TOOL-' || asset."ProductId",'DEMO-TORQUE-WRENCH-' || asset."ProductId",
-       'https://example.invalid/tools/' || asset."ProductId",
+       'https://example.com/tools/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' workshop torque wrench',
        asset."ManufacturerProductDesignation_de" || ' Werkstatt-Drehmomentschlüssel',
        asset."ManufacturerProductDesignation_en" || ' Demo Tool Supply',
@@ -195,7 +195,7 @@ INSERT INTO "MaintenanceConsumable" (
     "DisposalInstructionsForConsumable_en","DisposalInstructionsForConsumable_de","QuantityOfConsumable"
 )
 SELECT 0,'CONSUMABLE-' || asset."ProductId",'litre','DEMO-ENGINE-OIL-' || asset."ProductId",
-       'https://example.invalid/consumables/' || asset."ProductId",
+       'https://example.com/consumables/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' engine oil',
        asset."ManufacturerProductDesignation_de" || ' Motoröl',
        asset."ManufacturerProductDesignation_en" || ' Demo Oil Supply',
@@ -218,7 +218,7 @@ INSERT INTO "MaintenanceSparePart" (
     "DisposalInstructionsForSparePart_en","DisposalInstructionsForSparePart_de","QuantityOfSparePart"
 )
 SELECT 0,'SPARE-' || asset."ProductId",'DEMO-OIL-FILTER-' || asset."ProductId",
-       'https://example.invalid/spare-parts/' || asset."ProductId",
+       'https://example.com/spare-parts/' || asset."ProductId",
        asset."ManufacturerProductDesignation_en" || ' oil filter',
        asset."ManufacturerProductDesignation_de" || ' Ölfilter',
        asset."ManufacturerProductDesignation_en" || ' Demo Parts Supply',
@@ -239,4 +239,4 @@ SELECT instruction."Id", step."Id"
 FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
 JOIN "MaintenanceStep" AS step
     ON step."MaintenanceStepID" = instruction."MaintenanceID" || '-STEP-' || step."Index"
-WHERE instruction."MaintenanceID" IN ('BMW-320I-OIL','BMW-320I-BRAKES','COROLLA-16-OIL','COROLLA-16-BRAKES');
+WHERE instruction."MaintenanceID" IN ('CAR-1-OIL','CAR-1-BRAKES','CAR-2-OIL','CAR-2-BRAKES');

@@ -27,7 +27,7 @@ new_asset AS (
         'https://mm-software.com/ids/assets/' || np."ProductId",
         'https://mm-software.com/ids/aas/' || np."ProductId",
         'Instance','Product','image/jpeg',
-        'https://raw.githubusercontent.com/aas-ecosystem/aas-ecosystem/refs/heads/feature/plugin-update/examples/aas-ecosystem/stack-assets/data/C2344EE6-4A59-4054-8840-E1D69DFEEDF7_1_105_c.jpeg?token=GHSAT0AAAAAADZKDPWT4N3QXVMDXFUC42TO2XMBADQ',
+        'https://files.aas-demo.dev/car3.jpeg',
         FALSE,'https://mm-software.com/products/' || np."ProductId",'Demo product type',
         'DEMO-ORDER-' || np."ProductId",'DEMO-ARTICLE-' || np."ProductId",'DEMO-SN-' || np."ProductId",
         EXTRACT(YEAR FROM @DateOfManufacture)::INT,
@@ -36,11 +36,11 @@ new_asset AS (
         'Demo Street 1','Demostrasse 1','10115','10115','Berlin','Berlin','DE','DE',
         @ManufacturerName,
         'Demo product','Demoprodukt','Demo product root','Demoprodukt-Stamm','Demo family','Demofamilie',
-        'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg',
+        NULL,
         @ManufacturerArticleNumber,
         'DEMO-ORDER-' || np."ProductId",
-        'https://raw.githubusercontent.com/aas-ecosystem/aas-ecosystem/refs/heads/feature/plugin-update/examples/aas-ecosystem/stack-assets/data/C2344EE6-4A59-4054-8840-E1D69DFEEDF7_1_105_c.jpeg?token=GHSAT0AAAAAADZKDPWT4N3QXVMDXFUC42TO2XMBADQ',
-        'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg',
+        'https://files.aas-demo.dev/car3.jpeg',
+        NULL,
         'Illustrative demonstration record created via API; values other than the provided fields are synthetic.',
         'Beispieldatensatz, per API erstellt; Werte ausser den angegebenen Feldern sind synthetisch.',
         (@DateOfManufacture + INTERVAL '10 years')::DATE,
@@ -70,7 +70,7 @@ ins_technical_property_area AS (
 ins_marking AS (
     INSERT INTO "Marking" ("Index","MarkingName","DesignationOfCertificateOrApproval","IssueDate","ExpiryDate","MarkingAdditionalText","MarkingFile")
     SELECT 0, 'CE marking - ' || na."IdShort", 'DEMO-CE-' || na."ProductId", CURRENT_DATE, (CURRENT_DATE + INTERVAL '10 years')::DATE,
-           'Synthetic demonstration reference; not an actual certificate.', 'https://mm-software.com/'
+           'Synthetic demonstration reference; not an actual certificate.', 'https://files.aas-demo.dev/sample_document.pdf'
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -81,7 +81,7 @@ ins_asset_marking AS (
 ins_product_image AS (
     INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de")
     SELECT (SELECT COALESCE(MAX("Id"), 0) + 1 FROM "ProductImage"), 0,
-           'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=85',
+           'https://files.aas-demo.dev/car3.jpeg',
            'Representative product image; illustrative only.', 'Repraesentatives Produktbild; nur illustrativ.'
     FROM new_asset na
     RETURNING "Id"
@@ -194,7 +194,7 @@ ins_maintenance_step AS (
            'Inspect the product using the manufacturer procedure.', 'Produkt gemaess Herstellervorgabe pruefen.',
            'Inspection results are within specification.', 'Pruefergebnisse liegen innerhalb der Vorgaben.',
            'Stop and escalate any unsafe condition.', 'Bei unsicherem Zustand Arbeit stoppen und eskalieren.',
-           'https://mm-software.com/', 30, 'minutes'
+           'https://files.aas-demo.dev/sample_document.pdf', 30, 'minutes'
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -285,12 +285,12 @@ ins_document_version AS (
         "OrganizationOfficialName","Title_en","Title_de","Subtitle_en","Subtitle_de","Description_en","Description_de",
         "KeyWords_en","KeyWords_de","PreviewFile"
     )
-    SELECT 0, 'https://mm-software.com/', 'Demo 1.0', CURRENT_DATE, 'Illustrative',
+    SELECT 0, 'https://files.aas-demo.dev/sample_document.pdf', 'Demo 1.0', CURRENT_DATE, 'Illustrative',
            @ManufacturerName, @ManufacturerName,
            na."IdShort" || ' - owner guide reference (demo)', na."IdShort" || ' - Referenz zur Betriebsanleitung (Demo)',
            'Synthetic demonstration metadata', 'Synthetische Beispieldaten',
            'Demonstration reference for owner information.', 'Beispielreferenz fuer Besitzerinformationen.',
-           'owner guide, demo', 'Betriebsanleitung, Demo', 'https://mm-software.com/'
+           'owner guide, demo', 'Betriebsanleitung, Demo', 'https://files.aas-demo.dev/sample_document.pdf'
     FROM new_asset na
     RETURNING "Id"
 ),
