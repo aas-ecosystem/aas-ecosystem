@@ -1,0 +1,77 @@
+name: Customer Feedback
+description: Share feedback, impressions or concerns about the AAS Ecosystem
+title: "[Feedback]: "
+labels: ["customer-feedback", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to give us feedback.
+        **Do not include passwords, tokens, personal data or confidential business data.**
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feedback category
+      options:
+        - Usability
+        - Documentation
+        - Feature idea
+        - Performance
+        - Integration / interoperability
+        - Support experience
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Related component or product
+      description: For example DataEngine, DPP plugin, RelationalDatabase plugin, documentation.
+    validations:
+      required: false
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+      description: What worked well, and what did not?
+    validations:
+      required: true
+  - type: textarea
+    id: expectation
+    attributes:
+      label: What would you expect or like instead?
+    validations:
+      required: false
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact on your work
+      options:
+        - Low – nice to have
+        - Medium – slows us down
+        - High – blocks us
+    validations:
+      required: true
+  - type: dropdown
+    id: followup
+    attributes:
+      label: May we contact you for follow-up questions?
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Preferred contact (optional)
+      description: Only needed if you answered "Yes" above. Anyone with access to this repository can read it.
+    validations:
+      required: false
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Consent
+      options:
+        - label: I understand this feedback is visible to everyone who has access to this repository.
+          required: true
