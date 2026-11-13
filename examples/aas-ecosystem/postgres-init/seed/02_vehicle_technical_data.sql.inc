@@ -25,8 +25,8 @@ JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
 JOIN "Marking" AS marking ON marking."MarkingName" = relation."MarkingName";
 
 INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de") VALUES
-(1,0,'https://files.aas-demo.dev/Car1.jpeg','Illustrative image for Car 1.','Beispielbild fuer Car 1.'),
-(2,0,'https://files.aas-demo.dev/Car2.jpeg','Illustrative image for Car 2.','Beispielbild fuer Car 2.');
+(1,0,'https://files.aas-demo.dev/car1.jpeg','Illustrative image for Car 1.','Beispielbild fuer Car 1.'),
+(2,0,'https://files.aas-demo.dev/car2.jpeg','Illustrative image for Car 2.','Beispielbild fuer Car 2.');
 
 INSERT INTO "AssetProductImage" ("Id","AssetId","ProductImageId")
 SELECT relation."ImageId", asset."Id", relation."ImageId"

@@ -27,7 +27,7 @@ new_asset AS (
         'https://mm-software.com/ids/assets/' || np."ProductId",
         'https://mm-software.com/ids/aas/' || np."ProductId",
         'Instance','Product','image/jpeg',
-        'https://files.aas-demo.dev/Car3.jpeg',
+        'https://files.aas-demo.dev/car3.jpeg',
         FALSE,'https://mm-software.com/products/' || np."ProductId",'Demo product type',
         'DEMO-ORDER-' || np."ProductId",'DEMO-ARTICLE-' || np."ProductId",'DEMO-SN-' || np."ProductId",
         EXTRACT(YEAR FROM @DateOfManufacture)::INT,
@@ -39,7 +39,7 @@ new_asset AS (
         NULL,
         @ManufacturerArticleNumber,
         'DEMO-ORDER-' || np."ProductId",
-        'https://files.aas-demo.dev/Car3.jpeg',
+        'https://files.aas-demo.dev/car3.jpeg',
         NULL,
         'Illustrative demonstration record created via API; values other than the provided fields are synthetic.',
         'Beispieldatensatz, per API erstellt; Werte ausser den angegebenen Feldern sind synthetisch.',
@@ -81,7 +81,7 @@ ins_asset_marking AS (
 ins_product_image AS (
     INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de")
     SELECT (SELECT COALESCE(MAX("Id"), 0) + 1 FROM "ProductImage"), 0,
-           'https://files.aas-demo.dev/Car3.jpeg',
+           'https://files.aas-demo.dev/car3.jpeg',
            'Representative product image; illustrative only.', 'Repraesentatives Produktbild; nur illustrativ.'
     FROM new_asset na
     RETURNING "Id"

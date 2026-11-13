@@ -64,7 +64,7 @@ INSERT INTO "Asset" (
 (
     '000-001','Car 1','https://mm-software.com/ids/assets/000-001','https://mm-software.com/ids/aas/000-001',
     'Instance','PetrolPassengerCar','image/jpeg',
-    'https://files.aas-demo.dev/Car1.jpeg',
+    'https://files.aas-demo.dev/car1.jpeg',
     FALSE,'https://example.com/products/000-001','Demo petrol car',
     'DEMO-CAR-1','DEMO-CAR-1','DEMO-CAR-1-0001',2020,'2020-04-18',
     'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-01',
@@ -72,7 +72,7 @@ INSERT INTO "Asset" (
     'Demo Manufacturer','Car 1','Car 1','Car 1','Car 1','Demo Cars','Demo Cars',
     NULL,'DEMO-CAR-1',
     'DEMO-CAR-1',
-    'https://files.aas-demo.dev/Car1.jpeg',
+    'https://files.aas-demo.dev/car1.jpeg',
     NULL,
     'Illustrative demonstration record. Vehicle specifications are representative; serial numbers and carbon-footprint values are synthetic.',
     'Beispieldatensatz. Die Fahrzeugdaten sind repräsentativ; Seriennummern und CO2-Fussabdruckwerte sind synthetisch.',
@@ -83,7 +83,7 @@ INSERT INTO "Asset" (
 (
     '000-002','Car 2','https://mm-software.com/ids/assets/000-002','https://mm-software.com/ids/aas/000-002',
     'Instance','PetrolPassengerCar','image/jpeg',
-    'https://files.aas-demo.dev/Car2.jpeg',
+    'https://files.aas-demo.dev/car2.jpeg',
     FALSE,'https://example.com/products/000-002','Demo petrol car',
     'DEMO-CAR-2','DEMO-CAR-2','DEMO-CAR-2-0002',2020,'2020-06-12',
     'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-02',
@@ -92,7 +92,7 @@ INSERT INTO "Asset" (
     'Car 2','Car 2','Demo Cars','Demo Cars',
     NULL,'DEMO-CAR-2',
     'DEMO-CAR-2',
-    'https://files.aas-demo.dev/Car2.jpeg',
+    'https://files.aas-demo.dev/car2.jpeg',
     NULL,
     'Illustrative demonstration record. Vehicle specifications are representative; serial numbers and carbon-footprint values are synthetic.',
     'Beispieldatensatz. Die Fahrzeugdaten sind repräsentativ; Seriennummern und CO2-Fussabdruckwerte sind synthetisch.',
@@ -137,8 +137,8 @@ JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
 JOIN "Marking" AS marking ON marking."MarkingName" = relation."MarkingName";
 
 INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de") VALUES
-(1,0,'https://files.aas-demo.dev/Car1.jpeg','Illustrative image for Car 1.','Beispielbild fuer Car 1.'),
-(2,0,'https://files.aas-demo.dev/Car2.jpeg','Illustrative image for Car 2.','Beispielbild fuer Car 2.');
+(1,0,'https://files.aas-demo.dev/car1.jpeg','Illustrative image for Car 1.','Beispielbild fuer Car 1.'),
+(2,0,'https://files.aas-demo.dev/car2.jpeg','Illustrative image for Car 2.','Beispielbild fuer Car 2.');
 
 INSERT INTO "AssetProductImage" ("Id","AssetId","ProductImageId")
 SELECT relation."ImageId", asset."Id", relation."ImageId"
