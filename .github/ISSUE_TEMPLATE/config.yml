@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Report a security vulnerability
-    url: https://github.com/<ORG>/<REPO>/blob/main/SECURITY.md
-    about: Do not open a public issue. Follow the instructions in SECURITY.md.
-  - name: Contribution guide
-    url: https://github.com/<ORG>/<REPO>/blob/main/CONTRIBUTING.md
-    about: Read this before opening a pull request.
