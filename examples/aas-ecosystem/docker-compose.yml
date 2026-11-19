@@ -916,14 +916,18 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
-#### TODO: proxy konfigurieren
+  # Optionaler Demo-Proxy, nicht Teil des Standard-Stacks und von keinem anderen Dienst genutzt.
+  # Start nur mit Konfiguration in .env.proxy: docker compose --profile proxy up -d
   proxy:
     container_name: aas-proxy
     image: ghcr.io/meta-level-public/aasdemoproxy:latest
     platform: ${DOCKER_PLATFORM:-linux/amd64}
+    profiles:
+      - proxy
     restart: always
     env_file:
-      - .env.proxy # ProxyConfiguration aus Umgebungsvariablen laden
+      - path: .env.proxy # ProxyConfiguration aus Umgebungsvariablen laden
+        required: false
     networks:
       - aas-ecosystem-network
 
