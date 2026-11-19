@@ -33,8 +33,6 @@ IDTA submodel templates.
 |:-:|---|---|---|
 | 🎨 | **AAS Suite** <br><sub>by Meta-Level Software AG</sub> | Web frontend: template editor (Designer) and viewer for the AAS | [GitHub](https://github.com/meta-level-public/aas-suite-community) · [aas-suite.de](https://aas-suite.de) |
 | ⚙️ | **AAS Twin Engine** <br><sub>by M&M Software</sub> | Generates the AAS for the DPP from product data in a database | [GitHub](https://github.com/AAS-TwinEngine) · [Product page](https://www.mm-software.com/what-we-do/software-engineering/design/industrie-40/aas-twinengine/) |
-| 🗄️ | **Eclipse BaSyx** | AAS server: repositories, registries and discovery with the IDTA-compliant API | [GitHub](https://github.com/eclipse-basyx/basyx-go-components) · [Wiki](https://wiki.basyx.org) |
-| 🔐 | **Keycloak** | Login and access control for all parts of the stack | [keycloak.org](https://www.keycloak.org) |
 
 Included out of the box:
 
@@ -42,7 +40,9 @@ Included out of the box:
   Handover Documentation and Maintenance Instructions
 - **Demo products** with complete data, ready to view as AAS
 - **TwinEngine UI**, a plugin in the AAS Suite for editing product data in the browser
-- **DPP API and DPP gateway** from Eclipse BaSyx for serving product passports
+- **AAS server with the IDTA-compliant API**, based on [Eclipse BaSyx](https://github.com/eclipse-basyx/basyx-go-components),
+  plus DPP API and DPP gateway for serving product passports
+- **Login and access control** for the whole stack via [Keycloak](https://www.keycloak.org)
 
 ## 🔄 How it fits together
 
@@ -52,7 +52,7 @@ flowchart LR
     teui["🧩 <b>AAS Suite</b><br/>TwinEngine UI"]
     db[("Product<br/>database")]
     te["⚙️ <b>AAS Twin Engine</b>"]
-    basyx["🗄️ <b>Eclipse BaSyx</b><br/>AAS server · IDTA API"]
+    basyx["🗄️ <b>AAS server</b><br/>IDTA API"]
     viewer["👁️ <b>AAS Suite</b><br/>Viewer"]
 
     designer -- "templates" --> basyx
@@ -71,7 +71,7 @@ flowchart LR
 1. In the **AAS Suite** you create and adjust the templates for your product passport.
 2. Product data goes into the **Twin Engine** database, for example through the TwinEngine UI.
 3. When the AAS is requested through the IDTA API, the **Twin Engine** generates it from
-   template and data, and **BaSyx** serves it.
+   template and data, and the AAS server delivers it.
 4. The **viewer** in the AAS Suite shows the result.
 
 ## 🚀 Quick start
@@ -159,8 +159,8 @@ can be added on top of it:
 
 - **More use cases.** The included templates for carbon footprint, maintenance,
   technical data and documentation reach well beyond the DPP.
-- **More components.** Further BaSyx services and other tools from the AAS world can
-  join the network; access control through Keycloak is already in place.
+- **More components.** Further services and tools from the AAS world can join the
+  network; access control is already in place.
 - **Your own plugins.** The AAS Suite loads GUI plugins from `plugins/`; see the
   [plugin guide](examples/aas-ecosystem/plugins/README.md).
 
