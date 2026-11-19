@@ -1,9 +1,21 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, defer, forkJoin, map, throwError } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  defer,
+  forkJoin,
+  map,
+  of,
+  shareReplay,
+  switchMap,
+  throwError,
+} from 'rxjs';
 
 import { AppConfigService } from '../config/app-config.service';
 import {
+  AasShell,
+  AasShellResponse,
   AddressInformation,
   CarbonFootprintData,
   EMPTY_SHELL_EDIT_DATA,
@@ -22,11 +34,115 @@ import {
 export class ShellService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(AppConfigService);
+  private infrastructureId$?: Observable<number>;
 
   getShellDescriptors(): Observable<ShellDescriptor[]> {
+    if (this.config.infrastructureName) {
+      return this.getShellsViaProxy();
+    }
+
     return this.http
       .get<ShellDescriptorResponse>(`${this.config.apiBaseUrl}/shell-descriptors`)
       .pipe(map((response) => response.result ?? []));
+  }
+
+  /**
+   * Reads the shells from the AAS repository of the TwinEngine infrastructure through the
+   * AAS Suite proxy. The proxy has no registry route, so the shells are mapped to descriptors;
+   * the UI only needs the submodel IDs from them.
+   */
+  private getShellsViaProxy(): Observable<ShellDescriptor[]> {
+    const seen = new Map<string, ShellDescriptor>();
+    const loadPage = (cursor: string | null, page: number): Observable<ShellDescriptor[]> => {
+      const query = `?limit=${SHELL_PAGE_SIZE}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+      return this.proxyGet<AasShellResponse>('aas-repo', `/shells${query}`).pipe(
+        switchMap((response) => {
+          let added = 0;
+          for (const shell of response.result ?? []) {
+            if (shell.id && !seen.has(shell.id)) {
+              seen.set(shell.id, this.toShellDescriptor(shell));
+              added++;
+            }
+          }
+          // The DataEngine may repeat entries on the next page, so stop once a page adds nothing.
+          const next = response.paging_metadata?.cursor;
+          return next && added > 0 && page < MAX_SHELL_PAGES
+            ? loadPage(next, page + 1)
+            : of([...seen.values()]);
+        }),
+      );
+    };
+
+    return loadPage(null, 1);
+  }
+
+  private toShellDescriptor(shell: AasShell): ShellDescriptor {
+    return {
+      id: shell.id,
+      idShort: shell.idShort,
+      globalAssetId: shell.assetInformation?.globalAssetId,
+      assetKind: shell.assetInformation?.assetKind,
+      assetType: shell.assetInformation?.assetType,
+      submodelDescriptors: (shell.submodels ?? [])
+        .map((reference) => reference.keys?.[reference.keys.length - 1]?.value)
+        .filter((id): id is string => Boolean(id))
+        .map((id) => ({ id })),
+    };
+  }
+
+  private proxyGet<T>(repository: 'aas-repo' | 'sm-repo', path: string): Observable<T> {
+    return this.infrastructureId().pipe(
+      switchMap((id) =>
+        this.http.get<T>(
+          `${this.config.designerApiBaseUrl}/aas-proxy/${id}/${repository}${path}`,
+          { headers: this.suiteHeaders(id) },
+        ),
+      ),
+    );
+  }
+
+  private infrastructureId(): Observable<number> {
+    this.infrastructureId$ ??= this.http
+      .get<{ id: number; name: string }[]>(
+        `${this.config.designerApiBaseUrl}/aas-api/aasinfrastructure/getavailableinfrastructures`,
+        { headers: this.suiteHeaders() },
+      )
+      .pipe(
+        map((infrastructures) => {
+          const name = this.config.infrastructureName;
+          const infrastructure = (infrastructures ?? []).find((item) => item.name === name);
+          if (!infrastructure) {
+            throw new Error(`The infrastructure "${name}" is not available for this user.`);
+          }
+          return infrastructure.id;
+        }),
+        catchError((error: unknown) => {
+          this.infrastructureId$ = undefined;
+          return throwError(() => error);
+        }),
+        shareReplay(1),
+      );
+    return this.infrastructureId$;
+  }
+
+  private suiteHeaders(infrastructureId?: number): HttpHeaders {
+    let headers = new HttpHeaders({ Accept: 'application/json' });
+    const organisationId = this.sessionValue('CURRENT_ORGA_ID');
+    if (organisationId) {
+      headers = headers.set('X-Organisation-ID', organisationId);
+    }
+    if (infrastructureId !== undefined) {
+      headers = headers.set('X-Infrastructure-ID', String(infrastructureId));
+    }
+    return headers;
+  }
+
+  private sessionValue(key: string): string | null {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
   }
 
   getShellEditData(shell: ShellDescriptor): Observable<ShellEditData> {
@@ -104,7 +220,7 @@ export class ShellService {
 
     return {
       name: data.nameplate.name.replace(/\s+/g, ''),
-      dateOfManufacture: data.nameplate.dateOfManufacture,
+      dateOfManufacture: blankToNull(data.nameplate.dateOfManufacture),
       manufacturerName: data.technicalData.manufacturerName,
       manufacturerArticleNumber: data.technicalData.manufacturerArticleNumber,
       pcfCO2eq,
@@ -119,12 +235,12 @@ export class ShellService {
       addressInformation: { ...data.nameplate.addressInformation },
       serialNumber: data.nameplate.serialNumber,
       manufacturerProductType: data.nameplate.manufacturerProductType,
-      quantityOfMeasureForCalculation: data.carbonFootprint.quantityOfMeasureForCalculation,
-      publicationDate: data.carbonFootprint.publicationDate,
-      expirationDate: data.carbonFootprint.expirationDate,
-      length: data.technicalData.length,
-      width: data.technicalData.width,
-      height: data.technicalData.height,
+      quantityOfMeasureForCalculation: blankToNull(data.carbonFootprint.quantityOfMeasureForCalculation),
+      publicationDate: blankToNull(data.carbonFootprint.publicationDate),
+      expirationDate: blankToNull(data.carbonFootprint.expirationDate),
+      length: blankToNull(data.technicalData.length),
+      width: blankToNull(data.technicalData.width),
+      height: blankToNull(data.technicalData.height),
     };
   }
 
@@ -150,6 +266,13 @@ export class ShellService {
   private getSubmodelData(descriptor: SubmodelDescriptor): Observable<unknown> {
     const href = descriptor.endpoints?.[0]?.protocolInformation?.href;
     const id = descriptor.id;
+    if (this.config.infrastructureName) {
+      if (!id) {
+        return throwError(() => new Error('A submodel descriptor has no identifier.'));
+      }
+      return this.proxyGet<unknown>('sm-repo', `/submodels/${toBase64Url(id)}`);
+    }
+
     if (!href && !id) {
       return throwError(() => new Error('A submodel descriptor has no endpoint or identifier.'));
     }
@@ -191,7 +314,7 @@ export class ShellService {
         values.get('manufacturerproductdesignation') ??
         values.get('productdesignation') ??
         '',
-      dateOfManufacture: values.get('dateofmanufacture') ?? '',
+      dateOfManufacture: this.toDateInput(values.get('dateofmanufacture')),
       serialNumber: values.get('serialnumber') ?? '',
       manufacturerProductType: values.get('manufacturerproducttype') ?? '',
     };
@@ -292,4 +415,25 @@ export class ShellService {
       ? (value as Record<string, unknown>)
       : undefined;
   }
+}
+
+const SHELL_PAGE_SIZE = 1000;
+const MAX_SHELL_PAGES = 50;
+
+/** AAS API v3 identifiers in URL paths: base64url of the UTF-8 bytes, without padding. */
+function toBase64Url(value: string): string {
+  let binary = '';
+  for (const byte of new TextEncoder().encode(value)) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/**
+ * Empty date and number fields must be sent as null: the backend cannot parse "" as a date or
+ * number and would reject the whole request with a bare 400 instead of its validation message.
+ */
+function blankToNull(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
 }

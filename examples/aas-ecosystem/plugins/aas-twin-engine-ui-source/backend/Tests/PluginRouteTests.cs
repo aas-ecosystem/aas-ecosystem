@@ -88,7 +88,7 @@ public sealed class PluginRouteTests
         using var response = await client.PostAsync($"{BaseRoute}/submodel-data/reset", content: null);
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         Assert.Contains("RESTART IDENTITY CASCADE", factory.Provider.ResetSql);
-        Assert.Contains("'000-001','Car 1'", factory.Provider.ResetSql);
+        Assert.Contains("'000-001','Car1'", factory.Provider.ResetSql);
         Assert.Contains("INSERT INTO \"DocumentDocumentVersion\"", factory.Provider.ResetSql);
     }
 

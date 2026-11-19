@@ -5,6 +5,12 @@ import { firstValueFrom } from 'rxjs';
 export interface AppConfig {
   apiBaseUrl: string;
   writeApiBaseUrl: string;
+  /**
+   * Name of the TwinEngine infrastructure in the AAS Suite. When set, reads go through the
+   * AAS Suite proxy (login and infrastructure rights apply) instead of directly to apiBaseUrl.
+   */
+  infrastructureName?: string;
+  designerApiBaseUrl: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -13,6 +19,7 @@ export class AppConfigService {
   private config: AppConfig = {
     apiBaseUrl: 'http://localhost:8090',
     writeApiBaseUrl: '/designer-api/plugin-api/aas-twin-engine-ui',
+    designerApiBaseUrl: '/designer-api',
   };
 
   async load(): Promise<void> {
@@ -30,5 +37,13 @@ export class AppConfigService {
 
   get writeApiBaseUrl(): string {
     return this.config.writeApiBaseUrl.replace(/\/+$/, '');
+  }
+
+  get infrastructureName(): string | null {
+    return this.config.infrastructureName?.trim() || null;
+  }
+
+  get designerApiBaseUrl(): string {
+    return this.config.designerApiBaseUrl.replace(/\/+$/, '');
   }
 }

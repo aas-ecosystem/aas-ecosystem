@@ -3,9 +3,13 @@ WITH updated_asset AS (
         "DateOfManufacture" = @DateOfManufacture,
         "YearOfConstruction" = EXTRACT(YEAR FROM @DateOfManufacture)::INT,
         "AddressInformationStreet_en" = @Street,
+        "AddressInformationStreet_de" = @Street,
         "AddressInformationZipcode_en" = @Zipcode,
+        "AddressInformationZipcode_de" = @Zipcode,
         "AddressInformationCityTown_en" = @CityTown,
+        "AddressInformationCityTown_de" = @CityTown,
         "AddressInformationNationalCode_en" = @NationalCode,
+        "AddressInformationNationalCode_de" = @NationalCode,
         "SerialNumber" = @SerialNumber,
         "ManufacturerProductType" = @ManufacturerProductType,
         "ManufacturerName" = @ManufacturerName,
@@ -26,11 +30,11 @@ updated_dimensions AS (
 ),
 updated_specific_ids AS (
     UPDATE "SpecificAssetIds" SET "Value" = CASE
-        WHEN "Name" = 'DemoSerialNumber' THEN @SerialNumber
-        WHEN "Name" = 'ModelYear' THEN EXTRACT(YEAR FROM @DateOfManufacture)::INT::TEXT
+        WHEN "Name" = 'serialNumber' THEN @SerialNumber
+        WHEN "Name" = 'manufacturerPartId' THEN @ManufacturerArticleNumber
         ELSE "Value" END
     WHERE "ProductId" IN (SELECT "ProductId" FROM updated_asset)
-        AND "Name" IN ('DemoSerialNumber', 'ModelYear')
+        AND "Name" IN ('serialNumber', 'manufacturerPartId')
 )
 SELECT json_build_object(
     'productId', "ProductId", 'idShort', "IdShort", 'aasId', "AasId", 'globalAssetId', "GlobalAssetId"

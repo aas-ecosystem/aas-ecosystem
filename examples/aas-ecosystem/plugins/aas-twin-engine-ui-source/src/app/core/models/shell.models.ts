@@ -24,6 +24,22 @@ export interface ShellDescriptorResponse {
   paging_metadata?: { cursor?: string };
 }
 
+export interface AasShell {
+  id: string;
+  idShort?: string;
+  assetInformation?: {
+    assetKind?: string;
+    assetType?: string;
+    globalAssetId?: string;
+  };
+  submodels?: { keys?: { value?: string }[] }[];
+}
+
+export interface AasShellResponse {
+  result?: AasShell[];
+  paging_metadata?: { cursor?: string | null };
+}
+
 export interface AddressInformation {
   street: string;
   zipcode: string;
@@ -63,7 +79,7 @@ export interface ShellEditData {
 
 export interface ProductRequest {
   name: string;
-  dateOfManufacture: string;
+  dateOfManufacture: string | null;
   manufacturerName: string;
   manufacturerArticleNumber: string;
   pcfCO2eq: number;
@@ -75,12 +91,12 @@ export interface ProductUpdateRequest extends ProductRequest {
   addressInformation: AddressInformation;
   serialNumber: string;
   manufacturerProductType: string;
-  quantityOfMeasureForCalculation: string;
-  publicationDate: string;
-  expirationDate: string;
-  length: string;
-  width: string;
-  height: string;
+  quantityOfMeasureForCalculation: string | null;
+  publicationDate: string | null;
+  expirationDate: string | null;
+  length: string | null;
+  width: string | null;
+  height: string | null;
 }
 
 export interface ProductResponse {
