@@ -26,21 +26,21 @@ new_asset AS (
         @IdShort,
         'https://mm-software.com/ids/assets/' || np."ProductId",
         'https://mm-software.com/ids/aas/' || np."ProductId",
-        'Instance','Product','image/jpeg',
-        'https://files.aas-demo.dev/car3.jpeg',
+        'Instance','Product','image/png',
+        'https://files.aas-demo.dev/demo-company-logo.png',
         FALSE,'https://mm-software.com/products/' || np."ProductId",'Demo product type',
         'DEMO-ORDER-' || np."ProductId",'DEMO-ARTICLE-' || np."ProductId",'DEMO-SN-' || np."ProductId",
         EXTRACT(YEAR FROM @DateOfManufacture)::INT,
         @DateOfManufacture,
         'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-01',
-        'Demo Street 1','Demostrasse 1','10115','10115','Berlin','Berlin','DE','DE',
+        'Musterstrasse 1','Musterstraße 1','12345','12345','Musterstadt','Musterstadt','DE','DE',
         @ManufacturerName,
         'Demo product','Demoprodukt','Demo product root','Demoprodukt-Stamm','Demo family','Demofamilie',
-        NULL,
+        'https://files.aas-demo.dev/demo-company-logo.png',
         @ManufacturerArticleNumber,
         'DEMO-ORDER-' || np."ProductId",
-        'https://files.aas-demo.dev/car3.jpeg',
-        NULL,
+        'https://files.aas-demo.dev/demo-company-logo.png',
+        'https://files.aas-demo.dev/demo-company-logo.png',
         'Illustrative demonstration record created via API; values other than the provided fields are synthetic.',
         'Beispieldatensatz, per API erstellt; Werte ausser den angegebenen Feldern sind synthetisch.',
         (@DateOfManufacture + INTERVAL '10 years')::DATE,
@@ -58,19 +58,18 @@ ins_specific_asset_ids AS (
     SELECT na."ProductId", v."Name", v."Value"
     FROM new_asset na
     CROSS JOIN LATERAL (VALUES
-        ('DemoSerialNumber', 'DEMO-SN-' || na."ProductId"),
-        ('ModelYear', EXTRACT(YEAR FROM @DateOfManufacture)::INT::TEXT),
-        ('Origin', 'API')
+        ('serialNumber', 'DEMO-SN-' || na."ProductId"),
+        ('manufacturerPartId', @ManufacturerArticleNumber)
     ) AS v("Name", "Value")
 ),
 ins_technical_property_area AS (
     INSERT INTO "TechnicalPropertyArea" ("AssetId","Index","Length","Width","Height")
-    SELECT na."Id", 0, 1000, 500, 400 FROM new_asset na
+    SELECT na."Id", 0, 200, 85, 90 FROM new_asset na
 ),
 ins_marking AS (
     INSERT INTO "Marking" ("Index","MarkingName","DesignationOfCertificateOrApproval","IssueDate","ExpiryDate","MarkingAdditionalText","MarkingFile")
-    SELECT 0, 'CE marking - ' || na."IdShort", 'DEMO-CE-' || na."ProductId", CURRENT_DATE, (CURRENT_DATE + INTERVAL '10 years')::DATE,
-           'Synthetic demonstration reference; not an actual certificate.', 'https://files.aas-demo.dev/sample_document.pdf'
+    SELECT 0, 'CE', 'DEMO-CE-' || na."ProductId", CURRENT_DATE, (CURRENT_DATE + INTERVAL '10 years')::DATE,
+           'Demo marking for an exhibition model; no EU declaration of conformity.', 'https://files.aas-demo.dev/ce-mark.png'
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -81,8 +80,8 @@ ins_asset_marking AS (
 ins_product_image AS (
     INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de")
     SELECT (SELECT COALESCE(MAX("Id"), 0) + 1 FROM "ProductImage"), 0,
-           'https://files.aas-demo.dev/car3.jpeg',
-           'Representative product image; illustrative only.', 'Repraesentatives Produktbild; nur illustrativ.'
+           'https://files.aas-demo.dev/demo-company-logo.png',
+           'Placeholder image (company logo); replace with a product photo.', 'Platzhalterbild (Firmenlogo); durch ein Produktfoto ersetzen.'
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -96,8 +95,8 @@ ins_product_classification AS (
         "Index","ClassificationSystem","ClassificationSystemVersion","ClassificationSystemUrl",
         "ProductClassId","ProductClassCodedName","ProductClassName_en","ProductClassName_de"
     )
-    SELECT 0, 'UNSPSC', '26.0601', 'https://www.unspsc.org', '25101500', 'DEMO-PRODUCT-' || na."ProductId",
-           'Demo product', 'Demoprodukt'
+    SELECT 0, 'HS', '2022', 'https://www.wcoomd.org', '950300', 'DEMO-PRODUCT-' || na."ProductId",
+           'Toys; reduced-size (scale) models', 'Spielzeug; Modelle in verkleinertem Maßstab'
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -207,8 +206,8 @@ ins_maintenance_tool AS (
         "Index","ToolID","OrderCodeToolOfManufacturer","AddressOfAdditionalLinkTool","ToolName_en","ToolName_de",
         "CompanyNameToolSupplier_en","CompanyNameToolSupplier_de","ToolDescription_en","ToolDescription_de","MaxQuantityOfTool"
     )
-    SELECT 0, 'TOOL-' || na."ProductId", 'DEMO-TOOL-001', 'https://mm-software.com/', 'Torque wrench', 'Drehmomentschluessel',
-           'Demo Tools GmbH', 'Demo Tools GmbH', 'Standard torque wrench', 'Standard-Drehmomentschluessel', 1
+    SELECT 0, 'TOOL-' || na."ProductId", 'DEMO-TOOL-001', 'https://mm-software.com/', 'Fine tweezers', 'Feine Pinzette',
+           'Demo Tools GmbH', 'Demo Tools GmbH', 'Tweezers for re-seating small plug-in parts', 'Pinzette zum Nachstecken kleiner Steckteile', 1
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -223,10 +222,10 @@ ins_maintenance_consumable AS (
         "ConsumableDescription_en","ConsumableDescription_de","DisposalInstructionsForConsumable_en","DisposalInstructionsForConsumable_de",
         "QuantityOfConsumable"
     )
-    SELECT 0, 'CONS-' || na."ProductId", 'litre', 'DEMO-CONS-001', 'https://mm-software.com/',
-           'Cleaning agent', 'Reinigungsmittel', 'Demo Supplies GmbH', 'Demo Supplies GmbH',
-           'General purpose cleaning agent', 'Allzweck-Reinigungsmittel',
-           'Dispose of according to local regulations', 'Gemaess oertlichen Vorschriften entsorgen', 1
+    SELECT 0, 'CONS-' || na."ProductId", 'ml', 'DEMO-CONS-001', 'https://mm-software.com/',
+           'Wood glue (PVA)', 'Holzleim (Weißleim)', 'Demo Supplies GmbH', 'Demo Supplies GmbH',
+           'Water-based wood glue for fixing loose plug-in joints; use sparingly.', 'Wasserbasierter Holzleim zum Fixieren loser Steckverbindungen; sparsam verwenden.',
+           'Dispose of according to local regulations', 'Gemäß örtlichen Vorschriften entsorgen', 20
     FROM new_asset na
     RETURNING "Id"
 ),
@@ -242,8 +241,8 @@ ins_maintenance_spare_part AS (
         "QuantityOfSparePart"
     )
     SELECT 0, 'SPARE-' || na."ProductId", 'DEMO-SPARE-001', 'https://mm-software.com/',
-           'Filter element', 'Filterelement', 'Demo Parts GmbH', 'Demo Parts GmbH',
-           'Replacement filter element', 'Ersatz-Filterelement',
+           'Spare wheel set', 'Ersatzrad-Satz', 'Demo Parts GmbH', 'Demo Parts GmbH',
+           'Set of replacement wheels with axles', 'Satz Ersatzräder mit Achsen',
            'Dispose of according to local regulations', 'Gemaess oertlichen Vorschriften entsorgen', 1
     FROM new_asset na
     RETURNING "Id"
@@ -272,7 +271,7 @@ ins_document_document_id AS (
 ),
 ins_document_classification AS (
     INSERT INTO "DocumentClassification" ("Index","ClassId","ClassificationSystem","ClassName_en","ClassName_de")
-    SELECT 0, 'PRODUCT-OWNER-MANUAL', 'DEMO', 'Product owner information', 'Produkt-Besitzerinformationen' FROM new_asset na
+    SELECT 0, '03-02', 'VDI2770:2020', 'Operation', 'Bedienung' FROM new_asset na
     RETURNING "Id"
 ),
 ins_document_document_classification AS (
@@ -285,7 +284,7 @@ ins_document_version AS (
         "OrganizationOfficialName","Title_en","Title_de","Subtitle_en","Subtitle_de","Description_en","Description_de",
         "KeyWords_en","KeyWords_de","PreviewFile"
     )
-    SELECT 0, 'https://files.aas-demo.dev/sample_document.pdf', 'Demo 1.0', CURRENT_DATE, 'Illustrative',
+    SELECT 0, 'https://files.aas-demo.dev/sample_document.pdf', '1.0', CURRENT_DATE, 'Released',
            @ManufacturerName, @ManufacturerName,
            na."IdShort" || ' - owner guide reference (demo)', na."IdShort" || ' - Referenz zur Betriebsanleitung (Demo)',
            'Synthetic demonstration metadata', 'Synthetische Beispieldaten',

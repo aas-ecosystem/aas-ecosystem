@@ -1,3 +1,5 @@
+-- Maintenance for the wooden model cars: check plug-in joints (every 6 months)
+-- and wheels/axles (every 12 months). Flow chart = care and maintenance PDF per car.
 INSERT INTO "MaintenanceInstructionsForSpecificInterval" (
     "Index","MaintenanceID","NameOfMaintenance_en","NameOfMaintenance_de",
     "SourceOfMaintenanceInstructions_en","SourceOfMaintenanceInstructions_de",
@@ -6,63 +8,39 @@ INSERT INTO "MaintenanceInstructionsForSpecificInterval" (
     "MaintenanceIntervalValue","MaintenanceIntervalUnit","FlowChartOfMaintenanceSteps",
     "NumberOfRequiredTechnicians","RequiredQualification_en","RequiredQualification_de",
     "ValueTotalEstimatedWorkingTime","UnitValueTotalEstimatedWorkingTime"
-) VALUES
-(0,'CAR-1-OIL','Car 1 engine oil and filter service','Car 1 Motoröl- und Filterservice',
- 'Illustrative Car 1 service schedule','Beispiel-Wartungsplan Car 1',
- 'Example interval only; use the product-specific service schedule',
- 'Nur Beispielintervall; produktspezifischen Wartungsplan verwenden',
- 'Workshop demonstration only; follow the service and safety instructions',
- 'Nur Werkstattdemonstration; Service- und Sicherheitshinweise beachten',
- 15000,'km','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(1,'CAR-1-BRAKES','Car 1 brake inspection','Car 1 Bremsenprüfung',
- 'Illustrative Car 1 inspection schedule','Beispiel-Prüfplan Car 1',
- 'Example interval only; use the product-specific inspection requirements',
- 'Nur Beispielintervall; produktspezifische Prüfvorgaben verwenden',
- 'Workshop demonstration only; follow the brake inspection safety instructions',
- 'Nur Werkstattdemonstration; Sicherheitshinweise zur Bremsenprüfung beachten',
- 12,'months','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(0,'CAR-2-OIL','Car 2 engine oil and filter service','Car 2 Motoröl- und Filterservice',
- 'Illustrative Car 2 service schedule','Beispiel-Wartungsplan Car 2',
- 'Example interval only; use the product-specific service schedule',
- 'Nur Beispielintervall; produktspezifischen Wartungsplan verwenden',
- 'Workshop demonstration only; follow the service and safety instructions',
- 'Nur Werkstattdemonstration; Service- und Sicherheitshinweise beachten',
- 10000,'km','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour'),
-(1,'CAR-2-BRAKES','Car 2 brake inspection','Car 2 Bremsenprüfung',
- 'Illustrative Car 2 inspection schedule','Beispiel-Prüfplan Car 2',
- 'Example interval only; use the product-specific inspection requirements',
- 'Nur Beispielintervall; produktspezifische Prüfvorgaben verwenden',
- 'Workshop demonstration only; follow the brake inspection safety instructions',
- 'Nur Werkstattdemonstration; Sicherheitshinweise zur Bremsenprüfung beachten',
- 12,'months','https://files.aas-demo.dev/sample_document.pdf',1,'Qualified automotive technician','Qualifizierte Kfz-Fachkraft',1.0,'hour');
+)
+SELECT kind."Index", 'CAR-' || car."No" || '-' || kind."Code",
+       'Car ' || car."No" || ' ' || kind."Name_en", 'Car ' || car."No" || ' ' || kind."Name_de",
+       'Care and maintenance instructions DC-CAR' || car."No" || '-MT',
+       'Pflege- und Wartungshinweise DC-CAR' || car."No" || '-MT',
+       'Manufacturer recommendation (demo); no statutory requirement',
+       'Herstellerempfehlung (Demo); keine gesetzliche Vorgabe',
+       'Small parts: keep away from children under 3 years',
+       'Kleine Teile: von Kindern unter 3 Jahren fernhalten',
+       kind."Interval",'months','https://files.aas-demo.dev/car' || car."No" || '-pflege.pdf',
+       1,'Instructed person','Unterwiesene Person',kind."Hours",'hour'
+FROM (VALUES (1),(2),(3)) AS car("No")
+CROSS JOIN (VALUES
+    (0,'JOINTS','plug-in joint check','Prüfung der Steckverbindungen',6,0.25),
+    (1,'WHEELS','wheel and axle check','Prüfung von Rädern und Achsen',12,0.25)
+) AS kind("Index","Code","Name_en","Name_de","Interval","Hours");
 
 INSERT INTO "AssetMaintenanceInstruction" ("AssetId","MaintenanceInstructionId")
 SELECT asset."Id", instruction."Id"
-FROM (VALUES
-    ('000-001','CAR-1-OIL'),('000-001','CAR-1-BRAKES'),
-    ('000-002','CAR-2-OIL'),('000-002','CAR-2-BRAKES')
-) AS relation("ProductId","MaintenanceID")
-JOIN "Asset" AS asset ON asset."ProductId" = relation."ProductId"
+FROM "Asset" AS asset
 JOIN "MaintenanceInstructionsForSpecificInterval" AS instruction
-    ON instruction."MaintenanceID" = relation."MaintenanceID";
+    ON instruction."MaintenanceID" LIKE 'CAR-' || right(asset."ProductId", 1) || '-%'
+WHERE asset."ProductId" IN ('000-001','000-002','000-003');
 
-INSERT INTO "Alarm" ("Index","AlarmName_en","AlarmName_de","WarningLimitRelativeValue","WarningLimitSeverity") VALUES
-(0,'Car 1 oil service due','Car 1 Ölservice fällig',100,'Warning'),
-(0,'Car 1 brake inspection due','Car 1 Bremsenprüfung fällig',100,'Warning'),
-(0,'Car 2 oil service due','Car 2 Ölservice fällig',100,'Warning'),
-(0,'Car 2 brake inspection due','Car 2 Bremsenprüfung fällig',100,'Warning');
+INSERT INTO "Alarm" ("Index","AlarmName_en","AlarmName_de","WarningLimitRelativeValue","WarningLimitSeverity")
+SELECT 0, instruction."NameOfMaintenance_en" || ' due', instruction."NameOfMaintenance_de" || ' fällig', 100, 'Warning'
+FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
+ORDER BY instruction."Id";
 
 INSERT INTO "MaintenanceInstructionAlarm" ("MaintenanceInstructionId","AlarmId")
 SELECT instruction."Id", alarm."Id"
-FROM (VALUES
-    ('CAR-1-OIL','Car 1 oil service due'),
-    ('CAR-1-BRAKES','Car 1 brake inspection due'),
-    ('CAR-2-OIL','Car 2 oil service due'),
-    ('CAR-2-BRAKES','Car 2 brake inspection due')
-) AS relation("MaintenanceID","AlarmName")
-JOIN "MaintenanceInstructionsForSpecificInterval" AS instruction
-    ON instruction."MaintenanceID" = relation."MaintenanceID"
-JOIN "Alarm" AS alarm ON alarm."AlarmName_en" = relation."AlarmName";
+FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
+JOIN "Alarm" AS alarm ON alarm."AlarmName_en" = instruction."NameOfMaintenance_en" || ' due';
 
 -- Each instruction gets its own three step records, not shared step IDs.
 INSERT INTO "MaintenanceStep" (
@@ -76,31 +54,39 @@ INSERT INTO "MaintenanceStep" (
     "UnitEstimatedDurationTimeMaintenanceStep"
 )
 SELECT step."Index", instruction."MaintenanceID" || '-STEP-' || step."Index",
-       0,0,'piece',0,TRUE,step."EndOfMaintenance",
+       0,0,'piece',0,FALSE,step."EndOfMaintenance",
        instruction."NameOfMaintenance_en" || ' - ' || step."Name_en",
        instruction."NameOfMaintenance_de" || ' - ' || step."Name_de",
-       'Workshop demonstration','Werkstattdemonstration',
-       instruction."NameOfMaintenance_en" || ': ' || step."Instruction_en",
-       instruction."NameOfMaintenance_de" || ': ' || step."Instruction_de",
-       'Required checks are documented.','Erforderliche Prüfungen sind dokumentiert.',
-       'Refer unresolved findings to the service technician.',
-       'Offene Befunde an die Kfz-Fachkraft weitergeben.',
+       'Whole model','Gesamtes Modell',
+       CASE WHEN instruction."MaintenanceID" LIKE '%-JOINTS' THEN step."Joints_en" ELSE step."Wheels_en" END,
+       CASE WHEN instruction."MaintenanceID" LIKE '%-JOINTS' THEN step."Joints_de" ELSE step."Wheels_de" END,
+       'No damage found or damage resolved.','Keine Schäden festgestellt oder behoben.',
+       'Replace damaged parts with spare parts.',
+       'Beschädigte Teile durch Ersatzteile tauschen.',
        instruction."FlowChartOfMaintenanceSteps",step."Duration",'minutes'
 FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
 CROSS JOIN (VALUES
-    (0,FALSE,'Prepare service record','Serviceprotokoll vorbereiten',
-     'Record the vehicle identity and odometer reading.',
-     'Fahrzeugidentität und Kilometerstand dokumentieren.',10),
-    (1,FALSE,'Record inspection results','Prüfergebnisse erfassen',
-     'Record the results of the work performed by a qualified technician using the official vehicle-specific procedure.',
-     'Ergebnisse der nach offizieller fahrzeugspezifischer Vorgabe ausgeführten Facharbeiten dokumentieren.',40),
-    (2,TRUE,'Close service record','Serviceprotokoll abschließen',
-     'Document completed work and the next service due.',
-     'Abgeschlossene Arbeiten und nächsten Wartungstermin dokumentieren.',10)
-) AS step("Index","EndOfMaintenance","Name_en","Name_de","Instruction_en","Instruction_de","Duration")
-WHERE instruction."MaintenanceID" IN ('CAR-1-OIL','CAR-1-BRAKES','CAR-2-OIL','CAR-2-BRAKES');
+    (0,FALSE,'Visual inspection','Sichtprüfung',
+     'Check all plug-in joints for loose parts and cracks.','Alle Steckverbindungen auf lose Teile und Risse prüfen.',
+     'Check wheels for cracks and free rotation.','Räder auf Risse und Leichtgängigkeit prüfen.',5),
+    (1,FALSE,'Rework','Nacharbeit',
+     'Re-seat loose parts; fix with a little wood glue if needed.','Lose Teile nachstecken, bei Bedarf mit wenig Holzleim fixieren.',
+     'Re-seat axles; replace damaged wheels with the spare wheel set.','Achsen nachstecken, beschädigte Räder durch Ersatzrad-Satz tauschen.',
+     7),
+    (2,TRUE,'Clean and document','Reinigen und dokumentieren',
+     'Remove dust with a soft brush and record the inspection date.','Staub mit weichem Pinsel entfernen, Prüfdatum notieren.',
+     'Remove dust with a soft brush and record the inspection date.','Staub mit weichem Pinsel entfernen, Prüfdatum notieren.',3)
+) AS step("Index","EndOfMaintenance","Name_en","Name_de","Joints_en","Joints_de","Wheels_en","Wheels_de","Duration");
+
+INSERT INTO "MaintenanceInstructionsForSpecificIntervalMaintenanceStep"
+("MaintenanceInstructionsForSpecificIntervalId","MaintenanceStepId")
+SELECT instruction."Id", step."Id"
+FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
+JOIN "MaintenanceStep" AS step
+    ON step."MaintenanceStepID" = instruction."MaintenanceID" || '-STEP-' || step."Index";
 
 -- Each instruction owns a fictional contact and separate communication records.
+-- Phone/fax numbers use the reserved fictional range 555-01xx, e-mail addresses example.com.
 INSERT INTO "ContactForMaintenanceAuthorization" (
     "Index","Company_en","Company_de","Department_en","Department_de",
     "Title_en","Title_de","AcademicTitle_en","AcademicTitle_de",
@@ -109,25 +95,24 @@ INSERT INTO "ContactForMaintenanceAuthorization" (
     "CityTown_en","CityTown_de","NationalCode_en","NationalCode_de","StateCounty_en","StateCounty_de",
     "FurtherDetailsOfContact_en","FurtherDetailsOfContact_de","RoleOfContactPerson"
 )
-SELECT 0, asset."ManufacturerProductDesignation_en" || ' Demo Workshop',
-       asset."ManufacturerProductDesignation_de" || ' Demo-Werkstatt',
-       instruction."NameOfMaintenance_en",instruction."NameOfMaintenance_de",
+SELECT 0,'Demo Company GmbH','Demo Company GmbH',
+       'Model service','Modellservice',
        'Mx','Mx','Not applicable','Nicht zutreffend',
        contact."LastName",contact."LastName",contact."FirstName",contact."FirstName",
-       'Not applicable','Nicht zutreffend','1 Demo Street','Demo-Strasse 1','00000','00000',
-       'Demo Town','Demo-Stadt','DE','DE','Demo Region','Demo-Region',
+       'Not applicable','Nicht zutreffend','Musterstrasse 1','Musterstraße 1','12345','12345',
+       'Musterstadt','Musterstadt','DE','DE','Demo Region','Demo-Region',
        'Fictional authorization contact for ' || instruction."MaintenanceID",
        'Fiktiver Freigabekontakt für ' || instruction."MaintenanceID",'Maintenance authorization'
 FROM (VALUES
-    ('CAR-1-OIL','Alex','Miller'),
-    ('CAR-1-BRAKES','Sam','Taylor'),
-    ('COROLLA-16-OIL','Robin','Clark'),
-    ('COROLLA-16-BRAKES','Jamie','Morgan')
+    ('CAR-1-JOINTS','Alex','Miller'),
+    ('CAR-1-WHEELS','Sam','Taylor'),
+    ('CAR-2-JOINTS','Robin','Clark'),
+    ('CAR-2-WHEELS','Jamie','Morgan'),
+    ('CAR-3-JOINTS','Kim','Becker'),
+    ('CAR-3-WHEELS','Noa','Fischer')
 ) AS contact("MaintenanceID","FirstName","LastName")
 JOIN "MaintenanceInstructionsForSpecificInterval" instruction
-    ON instruction."MaintenanceID" = contact."MaintenanceID"
-JOIN "AssetMaintenanceInstruction" relation ON relation."MaintenanceInstructionId" = instruction."Id"
-JOIN "Asset" asset ON asset."Id" = relation."AssetId";
+    ON instruction."MaintenanceID" = contact."MaintenanceID";
 
 INSERT INTO "MaintenanceInstructionContactForMaintenanceAuthorization"
 ("MaintenanceInstructionId","ContactForMaintenanceAuthorizationId")
@@ -155,7 +140,8 @@ SELECT contact."Id",number."Value",number."Value",
 FROM "ContactForMaintenanceAuthorization" contact
 JOIN (VALUES
     ('Miller','+1-202-555-0101'),('Taylor','+1-202-555-0102'),
-    ('Clark','+1-202-555-0103'),('Morgan','+1-202-555-0104')
+    ('Clark','+1-202-555-0103'),('Morgan','+1-202-555-0104'),
+    ('Becker','+1-202-555-0105'),('Fischer','+1-202-555-0106')
 ) AS number("LastName","Value") ON number."LastName" = contact."NameOfContact_en";
 
 INSERT INTO "Fax" (
@@ -165,7 +151,8 @@ SELECT contact."Id",number."Value",number."Value",'Business'
 FROM "ContactForMaintenanceAuthorization" contact
 JOIN (VALUES
     ('Miller','+1-202-555-0111'),('Taylor','+1-202-555-0112'),
-    ('Clark','+1-202-555-0113'),('Morgan','+1-202-555-0114')
+    ('Clark','+1-202-555-0113'),('Morgan','+1-202-555-0114'),
+    ('Becker','+1-202-555-0115'),('Fischer','+1-202-555-0116')
 ) AS number("LastName","Value") ON number."LastName" = contact."NameOfContact_en";
 
 INSERT INTO "MaintenanceTool" (
@@ -173,15 +160,13 @@ INSERT INTO "MaintenanceTool" (
     "ToolName_en","ToolName_de","CompanyNameToolSupplier_en","CompanyNameToolSupplier_de",
     "ToolDescription_en","ToolDescription_de","MaxQuantityOfTool"
 )
-SELECT 0,'TOOL-' || asset."ProductId",'DEMO-TORQUE-WRENCH-' || asset."ProductId",
+SELECT 0,'TOOL-' || asset."ProductId",'DC-TWEEZERS-01',
        'https://example.com/tools/' || asset."ProductId",
-       asset."ManufacturerProductDesignation_en" || ' workshop torque wrench',
-       asset."ManufacturerProductDesignation_de" || ' Werkstatt-Drehmomentschlüssel',
-       asset."ManufacturerProductDesignation_en" || ' Demo Tool Supply',
-       asset."ManufacturerProductDesignation_de" || ' Demo-Werkzeughandel',
-       'Dedicated demonstration tool for ' || asset."ProductId",
-       'Separates Beispielwerkzeug für ' || asset."ProductId",1
-FROM "Asset" asset WHERE asset."ProductId" IN ('000-001','000-002');
+       'Fine tweezers','Feine Pinzette',
+       'Demo Company GmbH','Demo Company GmbH',
+       'For re-seating small plug-in parts of ' || asset."ManufacturerProductDesignation_en",
+       'Zum Nachstecken kleiner Steckteile von ' || asset."ManufacturerProductDesignation_de",1
+FROM "Asset" asset WHERE asset."ProductId" IN ('000-001','000-002','000-003');
 
 INSERT INTO "AssetMaintenanceTool" ("AssetId","MaintenanceToolId")
 SELECT asset."Id",tool."Id"
@@ -194,17 +179,15 @@ INSERT INTO "MaintenanceConsumable" (
     "ConsumableDescription_en","ConsumableDescription_de",
     "DisposalInstructionsForConsumable_en","DisposalInstructionsForConsumable_de","QuantityOfConsumable"
 )
-SELECT 0,'CONSUMABLE-' || asset."ProductId",'litre','DEMO-ENGINE-OIL-' || asset."ProductId",
+SELECT 0,'CONSUMABLE-' || asset."ProductId",'millilitre','DC-WOODGLUE-20',
        'https://example.com/consumables/' || asset."ProductId",
-       asset."ManufacturerProductDesignation_en" || ' engine oil',
-       asset."ManufacturerProductDesignation_de" || ' Motoröl',
-       asset."ManufacturerProductDesignation_en" || ' Demo Oil Supply',
-       asset."ManufacturerProductDesignation_de" || ' Demo-Ölhandel',
-       'Illustrative stock only; use the vehicle-specific approved oil grade and fill quantity.',
-       'Nur Beispielbestand; fahrzeugspezifisch freigegebene Ölsorte und Füllmenge verwenden.',
-       'Use an authorized waste-oil collection service.',
-       'Über eine zugelassene Altölsammelstelle entsorgen.',5
-FROM "Asset" asset WHERE asset."ProductId" IN ('000-001','000-002');
+       'Wood glue (PVA)','Holzleim (Weißleim)',
+       'Demo Company GmbH','Demo Company GmbH',
+       'Water-based wood glue for fixing loose plug-in joints; use sparingly.',
+       'Wasserbasierter Holzleim zum Fixieren loser Steckverbindungen; sparsam verwenden.',
+       'Dispose of dried residues with household waste.',
+       'Getrocknete Reste über den Hausmüll entsorgen.',20
+FROM "Asset" asset WHERE asset."ProductId" IN ('000-001','000-002','000-003');
 
 INSERT INTO "AssetMaintenanceConsumable" ("AssetId","MaintenanceConsumableId")
 SELECT asset."Id",consumable."Id"
@@ -217,26 +200,16 @@ INSERT INTO "MaintenanceSparePart" (
     "SparePartDescription_en","SparePartDescription_de",
     "DisposalInstructionsForSparePart_en","DisposalInstructionsForSparePart_de","QuantityOfSparePart"
 )
-SELECT 0,'SPARE-' || asset."ProductId",'DEMO-OIL-FILTER-' || asset."ProductId",
+SELECT 0,'SPARE-' || asset."ProductId",asset."ManufacturerArticleNumber" || '-WHEELS',
        'https://example.com/spare-parts/' || asset."ProductId",
-       asset."ManufacturerProductDesignation_en" || ' oil filter',
-       asset."ManufacturerProductDesignation_de" || ' Ölfilter',
-       asset."ManufacturerProductDesignation_en" || ' Demo Parts Supply',
-       asset."ManufacturerProductDesignation_de" || ' Demo-Ersatzteilhandel',
-       'Illustrative oil filter record; confirm vehicle-specific compatibility before use.',
-       'Beispieldatensatz Ölfilter; fahrzeugspezifische Kompatibilität vor Verwendung prüfen.',
-       'Dispose of used filters through an authorized workshop waste service.',
-       'Gebrauchte Filter über einen zugelassenen Werkstattentsorger entsorgen.',1
-FROM "Asset" asset WHERE asset."ProductId" IN ('000-001','000-002');
+       'Spare wheel set (4 wheels)','Ersatzrad-Satz (4 Räder)',
+       'Demo Company GmbH','Demo Company GmbH',
+       'Laser-cut replacement wheels for ' || asset."ManufacturerProductDesignation_en",
+       'Lasergeschnittene Ersatzräder für ' || asset."ManufacturerProductDesignation_de",
+       'Dispose of untreated wood with residual waste or wood collection.',
+       'Unbehandeltes Holz über Restmüll oder Holzsammlung entsorgen.',1
+FROM "Asset" asset WHERE asset."ProductId" IN ('000-001','000-002','000-003');
 
 INSERT INTO "AssetMaintenanceSparePart" ("AssetId","MaintenanceSparePartId")
 SELECT asset."Id",part."Id"
 FROM "Asset" asset JOIN "MaintenanceSparePart" part ON part."SparePartID" = 'SPARE-' || asset."ProductId";
-
-INSERT INTO "MaintenanceInstructionsForSpecificIntervalMaintenanceStep"
-("MaintenanceInstructionsForSpecificIntervalId","MaintenanceStepId")
-SELECT instruction."Id", step."Id"
-FROM "MaintenanceInstructionsForSpecificInterval" AS instruction
-JOIN "MaintenanceStep" AS step
-    ON step."MaintenanceStepID" = instruction."MaintenanceID" || '-STEP-' || step."Index"
-WHERE instruction."MaintenanceID" IN ('CAR-1-OIL','CAR-1-BRAKES','CAR-2-OIL','CAR-2-BRAKES');
