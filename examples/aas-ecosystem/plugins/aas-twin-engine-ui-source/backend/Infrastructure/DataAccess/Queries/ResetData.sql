@@ -48,6 +48,7 @@ RESTART IDENTITY CASCADE;
 -- ---------- seed/01_vehicle_assets.sql.inc ----------
 -- Demo assets: three laser-cut wooden model cars of the fictional "Demo Company GmbH".
 -- Images: https://files.aas-demo.dev/car1.jpeg … car3.jpeg (photos of the physical models).
+-- Addresses: Car1/Car3 at Meta-Level Software AG (Saarbrücken), Car2 at M&M Software (St. Georgen).
 -- Dimensions are rounded approximate values; serial numbers, dates and CO2 values are synthetic.
 INSERT INTO "Asset" (
     "ProductId","IdShort","GlobalAssetId","AasId","AssetKind","AssetType",
@@ -70,8 +71,8 @@ INSERT INTO "Asset" (
     'https://files.aas-demo.dev/car1.jpeg',
     FALSE,'https://example.com/products/dc-sw-01','DC-SW-01',
     'DC-SW-01','DC-SW-01','DC-SW-2026-0001',2026,'2026-11-02',
-    'Rev. A','n/a','n/a','DE','DC-MUSTERSTADT-01',
-    'Musterstrasse 1','Musterstraße 1','12345','12345','Musterstadt','Musterstadt','DE','DE',
+    'Rev. A','n/a','n/a','DE','DC-SAARBRUECKEN-01',
+    'Lyonerring 1','Lyonerring 1','66121','66121','Saarbrücken','Saarbrücken','DE','DE',
     'Demo Company GmbH','Wooden sports car (Car 1)','Holz-Sportwagen (Car 1)',
     'Wooden model car','Holzmodell-Auto','Demo model cars','Demo-Modellautos',
     'https://files.aas-demo.dev/demo-company-logo.png','DC-SW-01',
@@ -90,8 +91,8 @@ INSERT INTO "Asset" (
     'https://files.aas-demo.dev/car2.jpeg',
     FALSE,'https://example.com/products/dc-gw-02','DC-GW-02',
     'DC-GW-02','DC-GW-02','DC-GW-2026-0002',2026,'2026-11-03',
-    'Rev. A','n/a','n/a','DE','DC-MUSTERSTADT-01',
-    'Musterstrasse 1','Musterstraße 1','12345','12345','Musterstadt','Musterstadt','DE','DE',
+    'Rev. A','n/a','n/a','DE','DC-STGEORGEN-01',
+    'Industriestrasse 5','Industriestraße 5','78112','78112','St. Georgen','St. Georgen','DE','DE',
     'Demo Company GmbH','Wooden off-road vehicle (Car 2)','Holz-Geländewagen (Car 2)',
     'Wooden model car','Holzmodell-Auto','Demo model cars','Demo-Modellautos',
     'https://files.aas-demo.dev/demo-company-logo.png','DC-GW-02',
@@ -110,8 +111,8 @@ INSERT INTO "Asset" (
     'https://files.aas-demo.dev/car3.jpeg',
     FALSE,'https://example.com/products/dc-pu-03','DC-PU-03',
     'DC-PU-03','DC-PU-03','DC-PU-2026-0003',2026,'2026-11-04',
-    'Rev. A','n/a','n/a','DE','DC-MUSTERSTADT-01',
-    'Musterstrasse 1','Musterstraße 1','12345','12345','Musterstadt','Musterstadt','DE','DE',
+    'Rev. A','n/a','n/a','DE','DC-SAARBRUECKEN-01',
+    'Lyonerring 1','Lyonerring 1','66121','66121','Saarbrücken','Saarbrücken','DE','DE',
     'Demo Company GmbH','Wooden pickup truck (Car 3)','Holz-Pickup (Car 3)',
     'Wooden model car','Holzmodell-Auto','Demo model cars','Demo-Modellautos',
     'https://files.aas-demo.dev/demo-company-logo.png','DC-PU-03',
@@ -312,8 +313,8 @@ SELECT 0,'Demo Company GmbH','Demo Company GmbH',
        'Model service','Modellservice',
        'Mx','Mx','Not applicable','Nicht zutreffend',
        contact."LastName",contact."LastName",contact."FirstName",contact."FirstName",
-       'Not applicable','Nicht zutreffend','Musterstrasse 1','Musterstraße 1','12345','12345',
-       'Musterstadt','Musterstadt','DE','DE','Demo Region','Demo-Region',
+       'Not applicable','Nicht zutreffend',site."Street_en",site."Street_de",site."Zipcode",site."Zipcode",
+       site."City",site."City",'DE','DE',site."State_en",site."State_de",
        'Fictional authorization contact for ' || instruction."MaintenanceID",
        'Fiktiver Freigabekontakt für ' || instruction."MaintenanceID",'Maintenance authorization'
 FROM (VALUES
@@ -324,6 +325,12 @@ FROM (VALUES
     ('CAR-3-JOINTS','Kim','Becker'),
     ('CAR-3-WHEELS','Noa','Fischer')
 ) AS contact("MaintenanceID","FirstName","LastName")
+JOIN (VALUES
+    ('CAR-1','Lyonerring 1','Lyonerring 1','66121','Saarbrücken','Saarland','Saarland'),
+    ('CAR-2','Industriestrasse 5','Industriestraße 5','78112','St. Georgen','Baden-Wuerttemberg','Baden-Württemberg'),
+    ('CAR-3','Lyonerring 1','Lyonerring 1','66121','Saarbrücken','Saarland','Saarland')
+) AS site("CarPrefix","Street_en","Street_de","Zipcode","City","State_en","State_de")
+    ON contact."MaintenanceID" LIKE site."CarPrefix" || '-%'
 JOIN "MaintenanceInstructionsForSpecificInterval" instruction
     ON instruction."MaintenanceID" = contact."MaintenanceID";
 

@@ -99,8 +99,8 @@ SELECT 0,'Demo Company GmbH','Demo Company GmbH',
        'Model service','Modellservice',
        'Mx','Mx','Not applicable','Nicht zutreffend',
        contact."LastName",contact."LastName",contact."FirstName",contact."FirstName",
-       'Not applicable','Nicht zutreffend','Musterstrasse 1','Musterstraße 1','12345','12345',
-       'Musterstadt','Musterstadt','DE','DE','Demo Region','Demo-Region',
+       'Not applicable','Nicht zutreffend',site."Street_en",site."Street_de",site."Zipcode",site."Zipcode",
+       site."City",site."City",'DE','DE',site."State_en",site."State_de",
        'Fictional authorization contact for ' || instruction."MaintenanceID",
        'Fiktiver Freigabekontakt für ' || instruction."MaintenanceID",'Maintenance authorization'
 FROM (VALUES
@@ -111,6 +111,12 @@ FROM (VALUES
     ('CAR-3-JOINTS','Kim','Becker'),
     ('CAR-3-WHEELS','Noa','Fischer')
 ) AS contact("MaintenanceID","FirstName","LastName")
+JOIN (VALUES
+    ('CAR-1','Lyonerring 1','Lyonerring 1','66121','Saarbrücken','Saarland','Saarland'),
+    ('CAR-2','Industriestrasse 5','Industriestraße 5','78112','St. Georgen','Baden-Wuerttemberg','Baden-Württemberg'),
+    ('CAR-3','Lyonerring 1','Lyonerring 1','66121','Saarbrücken','Saarland','Saarland')
+) AS site("CarPrefix","Street_en","Street_de","Zipcode","City","State_en","State_de")
+    ON contact."MaintenanceID" LIKE site."CarPrefix" || '-%'
 JOIN "MaintenanceInstructionsForSpecificInterval" instruction
     ON instruction."MaintenanceID" = contact."MaintenanceID";
 

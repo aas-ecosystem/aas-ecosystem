@@ -33,7 +33,7 @@ new_asset AS (
         EXTRACT(YEAR FROM @DateOfManufacture)::INT,
         @DateOfManufacture,
         'demo-1.0','demo-1.0','demo-1.0','DE','DEMO-FACILITY-01',
-        'Musterstrasse 1','Musterstraße 1','12345','12345','Musterstadt','Musterstadt','DE','DE',
+        'Lyonerring 1','Lyonerring 1','66121','66121','Saarbrücken','Saarbrücken','DE','DE',
         @ManufacturerName,
         'Demo product','Demoprodukt','Demo product root','Demoprodukt-Stamm','Demo family','Demofamilie',
         'https://files.aas-demo.dev/demo-company-logo.png',
