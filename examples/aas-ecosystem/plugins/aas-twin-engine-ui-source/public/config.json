@@ -1,4 +1,6 @@
 {
   "apiBaseUrl": "http://localhost:8090",
-  "writeApiBaseUrl": "/designer-api/plugin-api/aas-twin-engine-ui"
+  "writeApiBaseUrl": "/designer-api/plugin-api/aas-twin-engine-ui",
+  "infrastructureName": "AAS.TE",
+  "designerApiBaseUrl": "/designer-api"
 }
