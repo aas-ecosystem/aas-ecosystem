@@ -11,6 +11,11 @@ export interface AppConfig {
    */
   infrastructureName?: string;
   designerApiBaseUrl: string;
+  /**
+   * Route of the AAS Suite viewer, relative to the Suite origin. {infrastructureId} and {aasId}
+   * are replaced (aasId URL-encoded). Only used when infrastructureName is set.
+   */
+  viewerRoute?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +25,7 @@ export class AppConfigService {
     apiBaseUrl: 'http://localhost:8090',
     writeApiBaseUrl: '/designer-api/plugin-api/aas-twin-engine-ui',
     designerApiBaseUrl: '/designer-api',
+    viewerRoute: '/viewer/aas-view/{infrastructureId}/{aasId}',
   };
 
   async load(): Promise<void> {
@@ -41,6 +47,10 @@ export class AppConfigService {
 
   get infrastructureName(): string | null {
     return this.config.infrastructureName?.trim() || null;
+  }
+
+  get viewerRoute(): string | null {
+    return this.config.viewerRoute?.trim() || null;
   }
 
   get designerApiBaseUrl(): string {

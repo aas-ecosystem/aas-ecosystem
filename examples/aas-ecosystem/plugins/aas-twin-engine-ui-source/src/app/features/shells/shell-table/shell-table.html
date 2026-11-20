@@ -29,6 +29,16 @@
           </td>
           <td>{{ shell.assetType || '-' }}</td>
           <td class="text-end text-nowrap">
+            @if (showViewer()) {
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary me-2"
+                [title]="'Open ' + (shell.idShort || shell.id) + ' in the AAS viewer'"
+                (click)="view.emit(shell)"
+              >
+                Viewer
+              </button>
+            }
             <button
               type="button"
               class="btn btn-sm btn-outline-primary"
