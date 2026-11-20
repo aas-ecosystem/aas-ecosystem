@@ -13,6 +13,11 @@ public class ProductService(ILogger<ProductService> logger, IQueryProvider query
 
     public async Task DeleteProductAsync(string productId, CancellationToken cancellationToken)
     {
+        if (DemoSeedProducts.ProtectedProductIds.Contains(productId))
+        {
+            throw new ConflictException($"Product '{productId}' is part of the demo data and cannot be deleted.");
+        }
+
         var sqlQuery = queryProvider.GetQuery("DeleteProduct");
         if (string.IsNullOrWhiteSpace(sqlQuery))
         {

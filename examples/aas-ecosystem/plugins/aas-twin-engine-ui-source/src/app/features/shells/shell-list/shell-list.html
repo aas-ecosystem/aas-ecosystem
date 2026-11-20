@@ -28,7 +28,15 @@
   } @else if (shells().length === 0) {
     <div class="card-body text-center text-body-secondary py-5">No products found.</div>
   } @else {
-    <app-shell-table [shells]="shells()" (edit)="openEdit($event)" />
+    @if (viewerError(); as message) {
+      <div class="alert alert-warning m-3 mb-0" role="alert">{{ message }}</div>
+    }
+    <app-shell-table
+      [shells]="shells()"
+      [showViewer]="canOpenViewer"
+      (edit)="openEdit($event)"
+      (view)="openViewer($event)"
+    />
   }
 </div>
 

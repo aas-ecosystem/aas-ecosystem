@@ -90,6 +90,22 @@ export class ShellService {
     };
   }
 
+  /** True when the products live in an AAS Suite infrastructure that the Suite viewer can open. */
+  get canOpenViewer(): boolean {
+    return !!this.config.infrastructureName && !!this.config.viewerRoute;
+  }
+
+  /** URL of the AAS Suite viewer for the given shell (same origin as the Suite). */
+  getViewerUrl(aasId: string): Observable<string> {
+    return this.infrastructureId().pipe(
+      map((infrastructureId) =>
+        (this.config.viewerRoute ?? '')
+          .replace('{infrastructureId}', String(infrastructureId))
+          .replace('{aasId}', encodeURIComponent(aasId)),
+      ),
+    );
+  }
+
   private proxyGet<T>(repository: 'aas-repo' | 'sm-repo', path: string): Observable<T> {
     return this.infrastructureId().pipe(
       switchMap((id) =>

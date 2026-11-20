@@ -76,8 +76,22 @@ public sealed class PluginRouteTests
         await using var factory = new Factory();
         factory.Provider.Exists = exists;
         using var client = factory.CreateClient();
-        using var response = await client.DeleteAsync($"{BaseRoute}/submodel-data/products/000-001");
+        using var response = await client.DeleteAsync($"{BaseRoute}/submodel-data/products/000-004");
         Assert.Equal(expected, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("000-001")]
+    [InlineData("000-002")]
+    [InlineData("000-003")]
+    public async Task Delete_WhenDemoSeedProduct_Returns409WithoutDeleting(string productId)
+    {
+        await using var factory = new Factory();
+        using var client = factory.CreateClient();
+        using var response = await client.DeleteAsync($"{BaseRoute}/submodel-data/products/{productId}");
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Contains("demo data", await response.Content.ReadAsStringAsync());
+        Assert.Null(factory.Provider.DeletedProductId);
     }
 
     [Fact]
@@ -138,7 +152,13 @@ public sealed class PluginRouteTests
             return Task.FromResult<CreatedProduct?>(Product);
         }
 
-        public Task<bool> DeleteProductAsync(string sql, string productId, CancellationToken token) => Task.FromResult(Exists);
+        public string? DeletedProductId { get; private set; }
+
+        public Task<bool> DeleteProductAsync(string sql, string productId, CancellationToken token)
+        {
+            DeletedProductId = productId;
+            return Task.FromResult(Exists);
+        }
 
         public string? ResetSql { get; private set; }
 

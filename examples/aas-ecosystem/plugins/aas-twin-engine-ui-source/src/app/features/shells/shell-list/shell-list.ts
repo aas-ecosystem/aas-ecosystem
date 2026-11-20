@@ -12,7 +12,9 @@ import { ModalComponent } from '../../../shared/components/modal/modal';
 import { ShellEditFormComponent } from '../shell-edit-form/shell-edit-form';
 import { ShellTableComponent } from '../shell-table/shell-table';
 
-const PROTECTED_PRODUCT_IDS: ReadonlySet<string> = new Set(['000-001', '000-002']);
+// Demo seed products (Car1-Car3) cannot be deleted; the backend enforces this as well
+// (DemoSeedProducts.cs). "Reset Data" restores them in any case.
+const PROTECTED_PRODUCT_IDS: ReadonlySet<string> = new Set(['000-001', '000-002', '000-003']);
 
 // null shell means the form is creating a new product
 interface FormState {
@@ -41,6 +43,8 @@ export class ShellListComponent implements OnInit {
   protected readonly resetConfirmOpen = signal(false);
   protected readonly resetting = signal(false);
   protected readonly resetError = signal<string | null>(null);
+  protected readonly viewerError = signal<string | null>(null);
+  protected readonly canOpenViewer = this.shellService.canOpenViewer;
 
   ngOnInit(): void {
     this.loadShells();
@@ -82,6 +86,27 @@ export class ShellListComponent implements OnInit {
             error instanceof Error ? error.message : 'Failed to load submodel data.',
           );
         },
+      });
+  }
+
+  /**
+   * Opens the shell in the AAS Suite viewer. The plugin may run inside a frame of the Suite,
+   * so the top window navigates (browser back returns to the plugin); a new tab is the fallback.
+   */
+  protected openViewer(shell: ShellDescriptor): void {
+    this.viewerError.set(null);
+    this.shellService
+      .getViewerUrl(shell.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (url) => {
+          try {
+            (window.top ?? window).location.assign(url);
+          } catch {
+            window.open(url, '_blank', 'noopener');
+          }
+        },
+        error: () => this.viewerError.set('Failed to open the AAS viewer.'),
       });
   }
 

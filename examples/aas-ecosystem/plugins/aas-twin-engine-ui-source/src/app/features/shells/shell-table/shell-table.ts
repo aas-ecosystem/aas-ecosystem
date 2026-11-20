@@ -8,5 +8,7 @@ import { ShellDescriptor } from '../../../core/models/shell.models';
 })
 export class ShellTableComponent {
   readonly shells = input.required<ShellDescriptor[]>();
+  readonly showViewer = input(false);
   readonly edit = output<ShellDescriptor>();
+  readonly view = output<ShellDescriptor>();
 }
