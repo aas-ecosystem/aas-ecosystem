@@ -1,6 +1,11 @@
 -- Creates a product with user values in "Asset" and dummy rows in every related table.
 -- Every insert selects FROM new_asset so nothing is written when @IdShort already exists.
-WITH next_product AS (
+WITH pic AS (
+    -- Random dummy car illustration (demo-car-1..6.png on files.aas-demo.dev) for thumbnail and product image.
+    -- random() is volatile, so PostgreSQL evaluates this CTE once and both columns get the same image.
+    SELECT 'https://files.aas-demo.dev/demo-car-' || (floor(random() * 6) + 1)::INT || '.png' AS "Url"
+),
+next_product AS (
     SELECT '000-' || lpad((COALESCE(MAX(substring("ProductId" FROM 5)::INT), 0) + 1)::TEXT, 3, '0') AS "ProductId"
     FROM "Asset"
     WHERE "ProductId" ~ '^000-[0-9]{3}$'
@@ -27,7 +32,7 @@ new_asset AS (
         'https://mm-software.com/ids/assets/' || np."ProductId",
         'https://mm-software.com/ids/aas/' || np."ProductId",
         'Instance','Product','image/png',
-        'https://files.aas-demo.dev/demo-company-logo.png',
+        pic."Url",
         FALSE,'https://mm-software.com/products/' || np."ProductId",'Demo product type',
         'DEMO-ORDER-' || np."ProductId",'DEMO-ARTICLE-' || np."ProductId",'DEMO-SN-' || np."ProductId",
         EXTRACT(YEAR FROM @DateOfManufacture)::INT,
@@ -39,7 +44,7 @@ new_asset AS (
         'https://files.aas-demo.dev/demo-company-logo.png',
         @ManufacturerArticleNumber,
         'DEMO-ORDER-' || np."ProductId",
-        'https://files.aas-demo.dev/demo-company-logo.png',
+        pic."Url",
         'https://files.aas-demo.dev/demo-company-logo.png',
         'Illustrative demonstration record created via API; values other than the provided fields are synthetic.',
         'Beispieldatensatz, per API erstellt; Werte ausser den angegebenen Feldern sind synthetisch.',
@@ -49,7 +54,7 @@ new_asset AS (
         @ReferenceImpactUnitForCalculation,
         1, now(), now() + INTERVAL '8 years',
         'Illustrative footprint estimate; not a verified manufacturer declaration.'
-    FROM next_product np
+    FROM next_product np CROSS JOIN pic
     WHERE NOT EXISTS (SELECT 1 FROM "Asset" WHERE "IdShort" = @IdShort)
     RETURNING "Id", "ProductId", "IdShort", "AasId", "GlobalAssetId"
 ),
@@ -80,9 +85,9 @@ ins_asset_marking AS (
 ins_product_image AS (
     INSERT INTO "ProductImage" ("Id","Index","ImageFile","ImageNote_en","ImageNote_de")
     SELECT (SELECT COALESCE(MAX("Id"), 0) + 1 FROM "ProductImage"), 0,
-           'https://files.aas-demo.dev/demo-company-logo.png',
-           'Placeholder image (company logo); replace with a product photo.', 'Platzhalterbild (Firmenlogo); durch ein Produktfoto ersetzen.'
-    FROM new_asset na
+           pic."Url",
+           'Illustrative placeholder image; replace with a product photo.', 'Illustratives Platzhalterbild; durch ein Produktfoto ersetzen.'
+    FROM new_asset na CROSS JOIN pic
     RETURNING "Id"
 ),
 ins_asset_product_image AS (
